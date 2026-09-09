@@ -5,16 +5,27 @@ import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
+import cors from "cors";
 
 dotenv.config();
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
 
 app.use(express.json());
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Target notification email requested by the user
 const TARGET_NOTIFICATION_EMAIL =
@@ -291,9 +302,15 @@ const analyticsStore = {
 };
 
 // API Routes
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Abhishek Digital API is working",
+    environment: process.env.VERCEL ? "vercel" : "local"
+  });
 });
+
+
 
 // AI Consultant endpoint using Gemini SDK
 app.post('/api/ai/consultant', async (req, res) => {

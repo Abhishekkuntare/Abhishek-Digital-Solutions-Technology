@@ -1,5 +1,31 @@
 [
   {
+    "id": "mail-1788973017724-chafd",
+    "sentAt": "2026-09-09T16:57:03.879Z",
+    "to": "abhishekkuntare02@gmail.com",
+    "subject": "🚀 Project Roadmap Received! [Solar installation] from fdg",
+    "senderName": "fdg",
+    "senderEmail": "wertyu@gmail.com",
+    "senderPhone": "+919156075536",
+    "type": "project_roadmap",
+    "summary": "Solar installation roadmap submitted with budget $1,750 – $2,713",
+    "status": "sent",
+    "notes": "Delivered via SMTP to abhishekkuntare02@gmail.com"
+  },
+  {
+    "id": "mail-1788972800719-auwyu",
+    "sentAt": "2026-09-09T16:53:27.371Z",
+    "to": "abhishekkuntare02@gmail.com",
+    "subject": "🚀 Project Roadmap Received! [Similar to Lumina Smile Studio & Dental Hospital] from Abhishek Kuntare",
+    "senderName": "Abhishek Kuntare",
+    "senderEmail": "abhishekkuntare7@gmail.com",
+    "senderPhone": "+919156075536",
+    "type": "project_roadmap",
+    "summary": "Similar to Lumina Smile Studio & Dental Hospital roadmap submitted with budget $1,750 – $2,713",
+    "status": "sent",
+    "notes": "Delivered via SMTP to abhishekkuntare02@gmail.com"
+  },
+  {
     "id": "mail-1788971280726-z5gwp",
     "sentAt": "2026-09-09T16:28:06.147Z",
     "to": "abhishekkuntare02@gmail.com",

@@ -157,51 +157,147 @@ export const ProjectConfigurator: React.FC<ProjectConfiguratorProps> = ({
     setErrorMessage('');
     setSubmitting(true);
 
-    try {
-      const payload = {
-        name,
-        businessName,
-        email,
-        phone,
-        country,
-        businessNiche: niche || 'General Business',
-        servicesRequired: selectedServices,
-        platforms: selectedPlatforms,
-        goals: selectedGoals,
-        timeline,
-        budgetRange: `${formatPrice(estimatedMinUSD, currentCurrency)} – ${formatPrice(estimatedMaxUSD, currentCurrency)}`,
-        projectDescription
-      };
+  //   try {
+  //     const payload = {
+  //       name,
+  //       businessName,
+  //       email,
+  //       phone,
+  //       country,
+  //       businessNiche: niche || 'General Business',
+  //       servicesRequired: selectedServices,
+  //       platforms: selectedPlatforms,
+  //       goals: selectedGoals,
+  //       timeline,
+  //       budgetRange: `${formatPrice(estimatedMinUSD, currentCurrency)} – ${formatPrice(estimatedMaxUSD, currentCurrency)}`,
+  //       projectDescription
+  //     };
 
-      const res = await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+  //     const res = await fetch('/api/leads', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(payload)
+  //     });
 
-      const data = await res.json();
-      if (data.success) {
-        setSubmitted(true);
-        // Trigger celebratory confetti
-        try {
-          confetti({
-            particleCount: 80,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-        } catch (e) {
-          // ignore if canvas blocked
-        }
-      } else {
-        setErrorMessage(data.error || 'Failed to submit proposal. Please try again.');
-      }
-    } catch (err) {
-      console.error('Submission error:', err);
-      setErrorMessage('Could not connect to server. Please reach Abhishek directly on WhatsApp.');
-    } finally {
-      setSubmitting(false);
-    }
+  //     const data = await res.json();
+  //     if (data.success) {
+  //       setSubmitted(true);
+  //       // Trigger celebratory confetti
+  //       try {
+  //         confetti({
+  //           particleCount: 80,
+  //           spread: 70,
+  //           origin: { y: 0.6 }
+  //         });
+  //       } catch (e) {
+  //         // ignore if canvas blocked
+  //       }
+  //     } else {
+  //       setErrorMessage(data.error || 'Failed to submit proposal. Please try again.');
+  //     }
+  //   } catch (err) {
+  //     console.error('Submission error:', err);
+  //     setErrorMessage('Could not connect to server. Please reach Abhishek directly on WhatsApp.');
+  //   } finally {
+  //     setSubmitting(false);
+  //   }
+  // };
+
+
+  try {
+  const payload = {
+    name,
+    businessName,
+    email,
+    phone,
+    country,
+    businessNiche: niche || "General Business",
+    servicesRequired: selectedServices,
+    platforms: selectedPlatforms,
+    goals: selectedGoals,
+    timeline,
+    budgetRange: `${formatPrice(
+      estimatedMinUSD,
+      currentCurrency
+    )} – ${formatPrice(
+      estimatedMaxUSD,
+      currentCurrency
+    )}`,
+    projectDescription
   };
+
+  console.log("📤 Sending proposal:", payload);
+
+  const res = await fetch("/api/leads", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  // Read as text FIRST
+  const responseText = await res.text();
+
+  console.log("📥 API status:", res.status);
+  console.log("📥 API response:", responseText);
+
+  let data = {};
+
+  try {
+    data = responseText ? JSON.parse(responseText) : {};
+  } catch (parseError) {
+    console.error("❌ API returned non-JSON:", responseText);
+
+    throw new Error(
+      `Server returned ${res.status}: ${
+        responseText || "Empty response"
+      }`
+    );
+  }
+
+  if (!res.ok) {
+    throw new Error(
+      data.error ||
+      data.message ||
+      `Server error: ${res.status}`
+    );
+  }
+
+  if (data.success) {
+    setSubmitted(true);
+
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } catch (e) {
+      console.warn("Confetti unavailable");
+    }
+
+  } else {
+    setErrorMessage(
+      data.error ||
+      data.message ||
+      "Failed to submit proposal. Please try again."
+    );
+  }
+
+} catch (err) {
+  console.error("❌ Submission error:", err);
+
+  setErrorMessage(
+    err instanceof Error
+      ? err.message
+      : "Could not connect to server."
+  );
+
+} finally {
+  setSubmitting(false);
+}
 
   const whatsappInquiryUrl = generateWhatsAppUrl(
     '+919156075536',
