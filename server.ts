@@ -859,6 +859,7 @@ ${newLead.projectDescription || "No additional notes provided."}
       "📧 Sending lead notification to:",
       TARGET_NOTIFICATION_EMAIL
     );
+console.log("📧 ABOUT TO SEND EMAIL");
 
     const emailLogResult = await sendNotificationEmail({
       subject: emailSubject,
@@ -872,6 +873,8 @@ ${newLead.projectDescription || "No additional notes provided."}
         `${newLead.businessNiche} roadmap submitted ` +
         `with budget ${newLead.budgetRange}`,
     });
+    console.log("📧 EMAIL FUNCTION COMPLETED");
+console.log("📧 EMAIL RESULT:", JSON.stringify(emailLogResult));
 
     console.log(
       "📧 Email result:",
@@ -926,24 +929,23 @@ ${newLead.projectDescription || "No additional notes provided."}
         emailLogResult?.formSubmitMessage || null,
     });
 
-  } catch (err) {
+} catch (err) {
+  console.error("❌ Lead creation error:", err);
 
-    console.error(
-      "❌ Lead creation error:",
-      err
-    );
+  const errorMessage =
+    err instanceof Error
+      ? err.message
+      : typeof err === "string"
+        ? err
+        : JSON.stringify(err);
 
-    return res.status(500).json({
-      success: false,
-      error: "Could not submit proposal request.",
-      details:
-        process.env.NODE_ENV === "development"
-          ? err instanceof Error
-            ? err.message
-            : String(err)
-          : undefined,
-    });
-  }
+  console.error("❌ Actual error:", errorMessage);
+
+  return res.status(500).json({
+    success: false,
+    error: errorMessage,
+  });
+}
 });
 
 // Dedicated endpoint to send custom inquiries / form submissions to abhishekkuntare02@gmail.com
