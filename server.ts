@@ -17,7 +17,9 @@ const PORT = 3000;
 app.use(express.json());
 
 // Target notification email requested by the user
-export const TARGET_NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL || 'abhishekkuntare02@gmail.com';
+const TARGET_NOTIFICATION_EMAIL =
+  process.env.NOTIFICATION_EMAIL ||
+  'abhishekkuntare02@gmail.com';
 
 // Data storage files
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -95,29 +97,33 @@ async function sendNotificationEmail(params: {
 
   // 1. LIVE HTTPS FormSubmit.co Relay directly to TARGET_NOTIFICATION_EMAIL (abhishekkuntare02@gmail.com)
   try {
-    const formSubmitRes = await fetch(`https://formsubmit.co/ajax/${TARGET_NOTIFICATION_EMAIL}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Origin': 'https://abhishek-digital.app',
-        'Referer': 'https://abhishek-digital.app/'
-      },
-      body: JSON.stringify({
-        _subject: `🔥 [Abhishek Digital] ${subject}`,
-        _replyto: senderEmail,
-        _template: 'table',
-        _captcha: 'false',
-        'Lead / Client Name': senderName,
-        'Email Address': senderEmail,
-        'Phone / WhatsApp': senderPhone,
-        'Submission Type': type,
-        'Summary': summary,
-        'Detailed Specifications': textContent,
-        'Forwarded Target': TARGET_NOTIFICATION_EMAIL,
-        'Timestamp': new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+   const formSubmitRes = await fetch(
+  `https://formsubmit.co/ajax/${TARGET_NOTIFICATION_EMAIL}`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      _subject: `🔥 [Abhishek Digital] ${subject}`,
+      _replyto: senderEmail,
+      _template: 'table',
+      _captcha: 'false',
+
+      'Lead / Client Name': senderName,
+      'Email Address': senderEmail,
+      'Phone / WhatsApp': senderPhone,
+      'Submission Type': type,
+      'Summary': summary,
+      'Detailed Specifications': textContent,
+      'Forwarded Target': TARGET_NOTIFICATION_EMAIL,
+      'Timestamp': new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata'
       })
-    });
+    })
+  }
+);
 
     const formSubmitData = await formSubmitRes.json().catch(() => ({}));
     console.log(`[FormSubmit Response for ${TARGET_NOTIFICATION_EMAIL}]:`, formSubmitData);
@@ -750,25 +756,21 @@ app.post('/api/analytics/event', (req, res) => {
   res.json({ success: true });
 });
 
-async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://0.0.0.0:${PORT}`);
+if (!process.env.VERCEL) {
+  const distPath = path.join(__dirname, "dist");
+
+  // Serve Vite production build
+  app.use(express.static(distPath));
+
+  // Frontend fallback
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+
+  const PORT = process.env.PORT || 3000;
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Abhishek Digital running at http://localhost:${PORT}`);
   });
 }
-
-startServer();
