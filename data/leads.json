@@ -1,5 +1,29 @@
 [
   {
+    "id": "lead-1788974183376",
+    "createdAt": "2026-09-09T17:16:23.378Z",
+    "name": "User",
+    "businessName": "",
+    "email": "fds@gmail.com",
+    "phone": "4525",
+    "country": "India",
+    "businessNiche": "IT consulting",
+    "servicesRequired": [
+      "High-Converting Website",
+      "24/7 AI WhatsApp / Web Bot"
+    ],
+    "platforms": [
+      "Responsive Website"
+    ],
+    "goals": [
+      "Get Inbound Leads & Inquiries"
+    ],
+    "timeline": "2–4 Weeks (Standard)",
+    "budgetRange": "$1,750 – $2,713",
+    "projectDescription": "",
+    "status": "New"
+  },
+  {
     "id": "lead-1788973017723",
     "createdAt": "2026-09-09T16:56:57.723Z",
     "name": "fdg",

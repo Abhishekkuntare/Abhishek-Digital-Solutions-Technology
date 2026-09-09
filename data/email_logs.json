@@ -1,5 +1,18 @@
 [
   {
+    "id": "mail-1788974183571-7eqiu",
+    "sentAt": "2026-09-09T17:16:30.264Z",
+    "to": "abhishekkuntare02@gmail.com",
+    "subject": "🚀 Project Roadmap Received! [IT consulting] from User",
+    "senderName": "User",
+    "senderEmail": "fds@gmail.com",
+    "senderPhone": "4525",
+    "type": "project_roadmap",
+    "summary": "IT consulting roadmap submitted with budget $1,750 – $2,713",
+    "status": "sent",
+    "notes": "Delivered via SMTP to abhishekkuntare02@gmail.com"
+  },
+  {
     "id": "mail-1788973017724-chafd",
     "sentAt": "2026-09-09T16:57:03.879Z",
     "to": "abhishekkuntare02@gmail.com",
