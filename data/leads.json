@@ -1,5 +1,28 @@
 [
   {
+    "id": "lead-1788974537567",
+    "createdAt": "2026-09-09T17:22:17.568Z",
+    "name": "User",
+    "businessName": "",
+    "email": "abhishekkuntare02@gmail.com",
+    "phone": "34256",
+    "country": "Not specified",
+    "businessNiche": "gdfgg",
+    "servicesRequired": [
+      "Direct Inquiry"
+    ],
+    "platforms": [
+      "Website"
+    ],
+    "goals": [
+      "Get Leads"
+    ],
+    "timeline": "Flexible",
+    "budgetRange": "Flexible",
+    "projectDescription": "fggsg",
+    "status": "New"
+  },
+  {
     "id": "lead-1788974183376",
     "createdAt": "2026-09-09T17:16:23.378Z",
     "name": "User",
