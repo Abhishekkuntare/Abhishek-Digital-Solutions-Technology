@@ -1,25 +1,27 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-import fs from "fs";
-import { GoogleGenAI } from "@google/genai";
-import dotenv from "dotenv";
-import nodemailer from "nodemailer";
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { GoogleGenAI } from '@google/genai';
+import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 import cors from "cors";
 
 dotenv.config();
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -105,33 +107,33 @@ async function sendNotificationEmail(params: {
 
   // 1. LIVE HTTPS FormSubmit.co Relay directly to TARGET_NOTIFICATION_EMAIL (abhishekkuntare02@gmail.com)
   try {
-    const formSubmitRes = await fetch(
-      `https://formsubmit.co/ajax/${TARGET_NOTIFICATION_EMAIL}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          _subject: `🔥 [Abhishek Digital] ${subject}`,
-          _replyto: senderEmail,
-          _template: 'table',
-          _captcha: 'false',
+   const formSubmitRes = await fetch(
+  `https://formsubmit.co/ajax/${TARGET_NOTIFICATION_EMAIL}`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      _subject: `🔥 [Abhishek Digital] ${subject}`,
+      _replyto: senderEmail,
+      _template: 'table',
+      _captcha: 'false',
 
-          'Lead / Client Name': senderName,
-          'Email Address': senderEmail,
-          'Phone / WhatsApp': senderPhone,
-          'Submission Type': type,
-          'Summary': summary,
-          'Detailed Specifications': textContent,
-          'Forwarded Target': TARGET_NOTIFICATION_EMAIL,
-          'Timestamp': new Date().toLocaleString('en-IN', {
-            timeZone: 'Asia/Kolkata'
-          })
-        })
-      }
-    );
+      'Lead / Client Name': senderName,
+      'Email Address': senderEmail,
+      'Phone / WhatsApp': senderPhone,
+      'Submission Type': type,
+      'Summary': summary,
+      'Detailed Specifications': textContent,
+      'Forwarded Target': TARGET_NOTIFICATION_EMAIL,
+      'Timestamp': new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata'
+      })
+    })
+  }
+);
 
     const formSubmitData = await formSubmitRes.json().catch(() => ({}));
     console.log(`[FormSubmit Response for ${TARGET_NOTIFICATION_EMAIL}]:`, formSubmitData);
@@ -428,9 +430,6 @@ app.get("/api/leads", (req, res) => {
 
 app.post("/api/leads", async (req, res) => {
   try {
-    console.log("🚀 POST /api/leads called");
-    console.log("📦 Request body:", JSON.stringify(req.body));
-
     const {
       name,
       businessName,
@@ -443,76 +442,510 @@ app.post("/api/leads", async (req, res) => {
       goals,
       timeline,
       budgetRange,
-      projectDescription
+      projectDescription,
     } = req.body;
 
+    // -----------------------------
+    // Validation
+    // -----------------------------
     if (!name || !email || !phone) {
       return res.status(400).json({
         success: false,
-        error: "Name, email and phone number are required."
+        error: "Name, email, and phone number are required.",
       });
     }
 
+    // -----------------------------
+    // Create lead
+    // -----------------------------
     const newLead: LeadRecord = {
       id: `lead-${Date.now()}`,
       createdAt: new Date().toISOString(),
+
       name: String(name).trim(),
       businessName: String(businessName || "").trim(),
       email: String(email).trim(),
       phone: String(phone).trim(),
+
       country: String(country || "Not specified").trim(),
+
       businessNiche: String(
         businessNiche || "General Business"
       ).trim(),
+
       servicesRequired: Array.isArray(servicesRequired)
         ? servicesRequired
         : [],
+
       platforms: Array.isArray(platforms)
         ? platforms
         : ["Website"],
+
       goals: Array.isArray(goals)
         ? goals
         : ["Get Leads"],
+
       timeline: String(timeline || "Flexible").trim(),
-      budgetRange: String(budgetRange || "Flexible").trim(),
+
+      budgetRange: String(
+        budgetRange || "Flexible"
+      ).trim(),
+
       projectDescription: String(
         projectDescription || ""
       ).trim(),
-      status: "New"
+
+      status: "New",
     };
 
-    console.log("✅ Lead created:", newLead.id);
-
+    // -----------------------------
+    // Store in memory
+    // -----------------------------
     leadsStore.unshift(newLead);
+
     analyticsStore.quoteRequests += 1;
 
-    console.log("✅ Lead added to memory");
+    // -----------------------------
+    // Prepare email data
+    // -----------------------------
+    const servicesList =
+      newLead.servicesRequired.join(", ") ||
+      "Not specified";
 
+    const platformsList =
+      newLead.platforms.join(", ") ||
+      "Website";
+
+    const goalsList =
+      newLead.goals.join(", ") ||
+      "Business Growth";
+
+    const emailSubject =
+      `🚀 Project Roadmap Received! ` +
+      `[${newLead.businessNiche}] from ${newLead.name}`;
+
+    const cleanPhone = newLead.phone.replace(
+      /[^0-9]/g,
+      ""
+    );
+
+    const whatsappUrl =
+      `https://wa.me/${cleanPhone}` +
+      `?text=${encodeURIComponent(
+        `Hi ${newLead.name}, this is Abhishek from Abhishek Digital Studio. I received your project roadmap for ${newLead.businessName || newLead.businessNiche}!`
+      )}`;
+
+    const emailText = `
+PROJECT ROADMAP RECEIVED!
+
+Target Mail: ${TARGET_NOTIFICATION_EMAIL}
+Date: ${new Date().toLocaleString()}
+
+CLIENT DETAILS:
+
+- Name: ${newLead.name}
+- Business: ${newLead.businessName || "None specified"}
+- Email: ${newLead.email}
+- Phone/WhatsApp: ${newLead.phone}
+- Country: ${newLead.country}
+- Business Niche: ${newLead.businessNiche}
+
+SPECIFICATIONS:
+
+- Services: ${servicesList}
+- Platforms: ${platformsList}
+- Goals: ${goalsList}
+- Budget Range: ${newLead.budgetRange}
+- Timeline: ${newLead.timeline}
+
+PROJECT DESCRIPTION:
+
+${newLead.projectDescription || "No additional notes provided."}
+`.trim();
+
+    const emailHtml = `
+<div style="
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 640px;
+  margin: 0 auto;
+  background: #0c101c;
+  color: #f1f5f9;
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid #1e293b;
+">
+
+  <div style="
+    border-bottom: 2px solid #06b6d4;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  ">
+    <h1 style="
+      color: #ffffff;
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+    ">
+      🚀 Project Roadmap Received!
+    </h1>
+
+    <p style="
+      color: #94a3b8;
+      font-size: 13px;
+      margin: 4px 0 0 0;
+    ">
+      Target Mailbox:
+      <span style="
+        color: #38bdf8;
+        font-weight: 700;
+      ">
+        ${TARGET_NOTIFICATION_EMAIL}
+      </span>
+    </p>
+  </div>
+
+  <div style="
+    background: #111728;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #1e293b;
+  ">
+
+    <h2 style="
+      color: #38bdf8;
+      font-size: 15px;
+      margin-top: 0;
+      margin-bottom: 12px;
+    ">
+      👤 Client Contact Information
+    </h2>
+
+    <table style="
+      width: 100%;
+      font-size: 13px;
+      border-collapse: collapse;
+    ">
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8; width: 140px;">
+          Name:
+        </td>
+        <td style="color: #ffffff; font-weight: bold;">
+          ${newLead.name}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Business Name:
+        </td>
+        <td style="color: #ffffff;">
+          ${newLead.businessName || "Not specified"}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Email:
+        </td>
+        <td>
+          <a
+            href="mailto:${newLead.email}"
+            style="color: #38bdf8;"
+          >
+            ${newLead.email}
+          </a>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Phone / WhatsApp:
+        </td>
+        <td>
+          <a
+            href="${whatsappUrl}"
+            style="color: #34d399; font-weight: bold;"
+          >
+            ${newLead.phone}
+          </a>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Country / Location:
+        </td>
+        <td style="color: #ffffff;">
+          ${newLead.country}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Niche / Industry:
+        </td>
+        <td style="color: #f59e0b; font-weight: bold;">
+          ${newLead.businessNiche}
+        </td>
+      </tr>
+
+    </table>
+  </div>
+
+  <div style="
+    background: #111728;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #1e293b;
+  ">
+
+    <h2 style="
+      color: #38bdf8;
+      font-size: 15px;
+      margin-top: 0;
+      margin-bottom: 12px;
+    ">
+      🛠️ Scope & Roadmap Specifications
+    </h2>
+
+    <table style="
+      width: 100%;
+      font-size: 13px;
+      border-collapse: collapse;
+    ">
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8; width: 140px;">
+          Services:
+        </td>
+        <td style="color: #ffffff;">
+          ${servicesList}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Target Platforms:
+        </td>
+        <td style="color: #ffffff;">
+          ${platformsList}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Primary Goals:
+        </td>
+        <td style="color: #ffffff;">
+          ${goalsList}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Budget Range:
+        </td>
+        <td style="color: #34d399; font-weight: bold;">
+          ${newLead.budgetRange}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 5px 0; color: #94a3b8;">
+          Timeline:
+        </td>
+        <td style="color: #ffffff;">
+          ${newLead.timeline}
+        </td>
+      </tr>
+
+    </table>
+  </div>
+
+  ${
+    newLead.projectDescription
+      ? `
+  <div style="
+    background: #111728;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #1e293b;
+  ">
+
+    <h2 style="
+      color: #38bdf8;
+      font-size: 15px;
+      margin-top: 0;
+      margin-bottom: 8px;
+    ">
+      📝 Project Description & Notes
+    </h2>
+
+    <p style="
+      color: #cbd5e1;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+      white-space: pre-wrap;
+    ">
+      ${newLead.projectDescription}
+    </p>
+
+  </div>
+  `
+      : ""
+  }
+
+  <div style="
+    text-align: center;
+    padding-top: 14px;
+    border-top: 1px solid #1e293b;
+  ">
+
+    <p style="
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    ">
+      Immediate Actions for Abhishek:
+    </p>
+
+    <a
+      href="${whatsappUrl}"
+      style="
+        display: inline-block;
+        background: #10b981;
+        color: #000000;
+        font-weight: bold;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-right: 8px;
+      "
+    >
+      Reply on WhatsApp
+    </a>
+
+    <a
+      href="mailto:${newLead.email}?subject=Project%20Roadmap%20Proposal%20-%20Abhishek%20Digital"
+      style="
+        display: inline-block;
+        background: #0284c7;
+        color: #ffffff;
+        font-weight: bold;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+      "
+    >
+      Reply via Email
+    </a>
+
+  </div>
+
+</div>
+`;
+
+    // -----------------------------
+    // Send notification email
+    // -----------------------------
+    console.log(
+      "📧 Sending lead notification to:",
+      TARGET_NOTIFICATION_EMAIL
+    );
+console.log("📧 ABOUT TO SEND EMAIL");
+
+    const emailLogResult = await sendNotificationEmail({
+      subject: emailSubject,
+      htmlContent: emailHtml,
+      textContent: emailText,
+      senderName: newLead.name,
+      senderEmail: newLead.email,
+      senderPhone: newLead.phone,
+      type: "project_roadmap",
+      summary:
+        `${newLead.businessNiche} roadmap submitted ` +
+        `with budget ${newLead.budgetRange}`,
+    });
+    console.log("📧 EMAIL FUNCTION COMPLETED");
+console.log("📧 EMAIL RESULT:", JSON.stringify(emailLogResult));
+
+    console.log(
+      "📧 Email result:",
+      emailLogResult
+    );
+
+    // IMPORTANT:
+    // Do NOT call saveLeadsToFile() on Vercel.
+    //
+    // Vercel serverless functions do not provide a
+    // persistent project filesystem.
+    //
+    // Keep the lead in memory for now.
+    //
+    // saveLeadsToFile(); ❌ REMOVE THIS
+
+    // -----------------------------
+    // Safely read email result
+    // -----------------------------
+    const emailLog = emailLogResult?.emailLog;
+
+    const emailStatus =
+      emailLog?.status || "sent";
+
+    const emailLogId =
+      emailLog?.id || `email-${Date.now()}`;
+
+    // -----------------------------
+    // Success response
+    // -----------------------------
     return res.status(201).json({
       success: true,
-      message: "Project roadmap received successfully.",
+
+      message:
+        `Project roadmap received! ` +
+        `Notification dispatched to ${TARGET_NOTIFICATION_EMAIL}.`,
+
       leadId: newLead.id,
-      notificationSentTo: null,
-      deliveryStatus: "email_temporarily_disabled"
+
+      notificationSentTo:
+        TARGET_NOTIFICATION_EMAIL,
+
+      emailLogId,
+
+      deliveryStatus:
+        emailStatus,
+
+      needsActivation:
+        emailStatus === "pending_activation",
+
+      activationNotice:
+        emailLogResult?.formSubmitMessage || null,
     });
 
-  } catch (err) {
-    console.error("❌ LEAD API CRASH:", err);
+} catch (err) {
+  console.error("❌ Lead creation error:", err);
 
-    const errorMessage =
-      err instanceof Error
-        ? err.message
-        : typeof err === "string"
-          ? err
-          : JSON.stringify(err);
+  const errorMessage =
+    err instanceof Error
+      ? err.message
+      : typeof err === "string"
+        ? err
+        : JSON.stringify(err);
 
-    console.error("❌ ACTUAL ERROR:", errorMessage);
+  console.error("❌ Actual error:", errorMessage);
 
-    return res.status(500).json({
-      success: false,
-      error: errorMessage
-    });
-  }
+  return res.status(500).json({
+    success: false,
+    error: errorMessage,
+  });
+}
 });
 
 // Dedicated endpoint to send custom inquiries / form submissions to abhishekkuntare02@gmail.com
@@ -717,8 +1150,10 @@ app.post('/api/analytics/event', (req, res) => {
 if (!process.env.VERCEL) {
   const distPath = path.join(__dirname, "dist");
 
+  // Serve Vite production build
   app.use(express.static(distPath));
 
+  // Frontend fallback
   app.get("*", (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
@@ -726,9 +1161,7 @@ if (!process.env.VERCEL) {
   const PORT = Number(process.env.PORT) || 3000;
 
   app.listen(PORT, () => {
-    console.log(
-      `🚀 Abhishek Digital running at http://localhost:${PORT}`
-    );
+    console.log(`🚀 Abhishek Digital running at http://localhost:${PORT}`);
   });
 }
 
