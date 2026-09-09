@@ -445,54 +445,42 @@ app.post("/api/leads", async (req, res) => {
       goals,
       timeline,
       budgetRange,
-      projectDescription,
+      projectDescription
     } = req.body;
 
     if (!name || !email || !phone) {
       return res.status(400).json({
         success: false,
-        error: "Name, email, and phone number are required.",
+        error: "Name, email and phone number are required."
       });
     }
 
     const newLead: LeadRecord = {
       id: `lead-${Date.now()}`,
       createdAt: new Date().toISOString(),
-
       name: String(name).trim(),
       businessName: String(businessName || "").trim(),
       email: String(email).trim(),
       phone: String(phone).trim(),
-
       country: String(country || "Not specified").trim(),
-
       businessNiche: String(
         businessNiche || "General Business"
       ).trim(),
-
       servicesRequired: Array.isArray(servicesRequired)
         ? servicesRequired
         : [],
-
       platforms: Array.isArray(platforms)
         ? platforms
         : ["Website"],
-
       goals: Array.isArray(goals)
         ? goals
         : ["Get Leads"],
-
       timeline: String(timeline || "Flexible").trim(),
-
-      budgetRange: String(
-        budgetRange || "Flexible"
-      ).trim(),
-
+      budgetRange: String(budgetRange || "Flexible").trim(),
       projectDescription: String(
         projectDescription || ""
       ).trim(),
-
-      status: "New",
+      status: "New"
     };
 
     console.log("✅ Lead created:", newLead.id);
@@ -502,18 +490,12 @@ app.post("/api/leads", async (req, res) => {
 
     console.log("✅ Lead added to memory");
 
-    // IMPORTANT:
-    // Temporarily disabled for testing.
-    // Do NOT write files on Vercel.
-    //
-    // saveLeadsToFile();
-
     return res.status(201).json({
       success: true,
       message: "Project roadmap received successfully.",
       leadId: newLead.id,
       notificationSentTo: null,
-      deliveryStatus: "email_temporarily_disabled",
+      deliveryStatus: "email_temporarily_disabled"
     });
 
   } catch (err) {
@@ -530,7 +512,7 @@ app.post("/api/leads", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: errorMessage,
+      error: errorMessage
     });
   }
 });
