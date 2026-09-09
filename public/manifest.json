@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Abhishek — Digital Solutions & Technology",
+  "short_name": "AbhishekDigi",
+  "description": "International digital solutions: websites, apps, AI automation, branding, and growth.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090b10",
+  "theme_color": "#090b10",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%23090b10'/%3E%3Cpolygon points='256 64 64 160 256 256 448 160 256 64' fill='%230284c7'/%3E%3Cpolyline points='64 256 256 352 448 256' stroke='%2338bdf8' stroke-width='32' fill='none'/%3E%3Cpolyline points='64 352 256 448 448 352' stroke='%2306b6d4' stroke-width='32' fill='none'/%3E%3C/svg%3E",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

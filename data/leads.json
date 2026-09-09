@@ -1,0 +1,135 @@
+[
+  {
+    "id": "lead-1788946674927",
+    "createdAt": "2026-09-09T09:37:54.927Z",
+    "name": "User",
+    "businessName": "",
+    "email": "shrere02@gmail.com",
+    "phone": "7890343",
+    "country": "Not specified",
+    "businessNiche": "fgf",
+    "servicesRequired": [
+      "Direct Inquiry"
+    ],
+    "platforms": [
+      "Website"
+    ],
+    "goals": [
+      "Get Leads"
+    ],
+    "timeline": "Flexible",
+    "budgetRange": "Flexible",
+    "projectDescription": "fdsfwer",
+    "status": "New"
+  },
+  {
+    "id": "lead-1788946310652",
+    "createdAt": "2026-09-09T09:31:50.652Z",
+    "name": "User",
+    "businessName": "",
+    "email": "user@gmail.com",
+    "phone": "234543535",
+    "country": "India",
+    "businessNiche": "Solar installation (Premium Package)",
+    "servicesRequired": [
+      "High-Converting Website",
+      "24/7 AI WhatsApp / Web Bot"
+    ],
+    "platforms": [
+      "Responsive Website"
+    ],
+    "goals": [
+      "Get Inbound Leads & Inquiries"
+    ],
+    "timeline": "2–4 Weeks (Standard)",
+    "budgetRange": "$1,750 – $2,713",
+    "projectDescription": "wewrwer",
+    "status": "New"
+  },
+  {
+    "id": "lead-1788941690385",
+    "createdAt": "2026-09-09T08:14:50.385Z",
+    "name": "Rajesh Sharma",
+    "businessName": "Sharma Logistics & Freight",
+    "email": "rajesh@sharmalogistics.in",
+    "phone": "+91 98765 43210",
+    "country": "India",
+    "businessNiche": "Logistics & Transport",
+    "servicesRequired": [
+      "High-Speed Website",
+      "Fleet Tracking Portal",
+      "WhatsApp Bot"
+    ],
+    "platforms": [
+      "Website"
+    ],
+    "goals": [
+      "Get Leads"
+    ],
+    "timeline": "Within 1 Month",
+    "budgetRange": "₹1,50,000 – ₹3,00,000",
+    "projectDescription": "Need a real-time fleet management dashboard and client tracking interface.",
+    "status": "Proposal Sent"
+  },
+  {
+    "id": "lead-101",
+    "createdAt": "2026-09-08T08:14:39.007Z",
+    "name": "Dr. Sarah Jenkins",
+    "businessName": "Coastal Smiles Dental",
+    "email": "sarah@coastalsmiles.example",
+    "phone": "+1 415-555-0182",
+    "country": "United States",
+    "businessNiche": "Dental Clinic",
+    "servicesRequired": [
+      "Website",
+      "Appointment Booking",
+      "WhatsApp AI Bot",
+      "Local SEO"
+    ],
+    "platforms": [
+      "Website",
+      "Tablet"
+    ],
+    "goals": [
+      "Get Leads",
+      "Book Appointments",
+      "Automate Business"
+    ],
+    "timeline": "2–4 weeks",
+    "budgetRange": "$2,500 – $5,000",
+    "projectDescription": "We want to revamp our dental practice website and install automated appointment reminders to stop patient no-shows.",
+    "status": "New",
+    "notes": "Requested a video walkthrough demo."
+  },
+  {
+    "id": "lead-102",
+    "createdAt": "2026-09-07T08:14:39.007Z",
+    "name": "Vikram Mehta",
+    "businessName": "Spice Route Fine Dining",
+    "email": "vikram@spiceroute.example",
+    "phone": "+91 98200 12345",
+    "country": "India",
+    "businessNiche": "Restaurant",
+    "servicesRequired": [
+      "Website",
+      "Online Ordering",
+      "QR Table Menu",
+      "Google SEO"
+    ],
+    "platforms": [
+      "Website",
+      "Android",
+      "iOS"
+    ],
+    "goals": [
+      "Sell Products",
+      "Book Appointments",
+      "Build Brand"
+    ],
+    "timeline": "ASAP",
+    "budgetRange": "₹1,50,000 – ₹3,00,000",
+    "projectDescription": "Want to stop paying 28% commissions to Swiggy/Zomato. Need our own direct delivery ordering platform.",
+    "status": "Won",
+    "notes": "Sent Growth Package proposal."
+  }
+]
