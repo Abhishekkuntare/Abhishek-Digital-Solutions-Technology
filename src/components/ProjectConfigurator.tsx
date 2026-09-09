@@ -2586,12 +2586,33 @@ export const ProjectConfigurator: React.FC<ProjectConfiguratorProps> = ({
       }
 
       if (!res.ok) {
-        throw new Error(
-          data.error ||
-            data.message ||
-            `Server error: ${res.status}`
-        );
-      }
+  console.error("❌ API ERROR DETAILS:", {
+    status: res.status,
+    statusText: res.statusText,
+    responseText,
+    data,
+  });
+
+  let serverMessage = `Server error: ${res.status}`;
+
+  if (typeof data === "string") {
+    serverMessage = data;
+  } else if (data?.error) {
+    serverMessage =
+      typeof data.error === "string"
+        ? data.error
+        : JSON.stringify(data.error);
+  } else if (data?.message) {
+    serverMessage =
+      typeof data.message === "string"
+        ? data.message
+        : JSON.stringify(data.message);
+  } else if (responseText) {
+    serverMessage = responseText;
+  }
+
+  throw new Error(serverMessage);
+}
 
       if (data.success) {
         setSubmitted(true);
