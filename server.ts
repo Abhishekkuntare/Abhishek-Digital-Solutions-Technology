@@ -2,9 +2,9 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-// import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-// import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 import cors from "cors";
 
 dotenv.config();
@@ -155,24 +155,24 @@ async function sendNotificationEmail(params: {
   // 2. If SMTP environment variables are present, also attempt live SMTP transport
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
-      // const transporter = nodemailer.createTransport({
-      //   host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      //   port: Number(process.env.SMTP_PORT) || 587,
-      //   secure: Number(process.env.SMTP_PORT) === 465,
-      //   auth: {
-      //     user: process.env.SMTP_USER,
-      //     pass: process.env.SMTP_PASS,
-      //   },
-      // });
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: Number(process.env.SMTP_PORT) === 465,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
 
-      // await transporter.sendMail({
-      //   from: `"${senderName} via Abhishek Digital" <${process.env.SMTP_USER}>`,
-      //   to: TARGET_NOTIFICATION_EMAIL,
-      //   replyTo: senderEmail,
-      //   subject,
-      //   text: textContent,
-      //   html: htmlContent,
-      // });
+      await transporter.sendMail({
+        from: `"${senderName} via Abhishek Digital" <${process.env.SMTP_USER}>`,
+        to: TARGET_NOTIFICATION_EMAIL,
+        replyTo: senderEmail,
+        subject,
+        text: textContent,
+        html: htmlContent,
+      });
 
       deliveryStatus = 'sent';
       notes = `Delivered via SMTP to ${TARGET_NOTIFICATION_EMAIL}`;
@@ -300,15 +300,14 @@ const analyticsStore = {
 
 // API Routes
 app.get("/api/health", (req, res) => {
-  console.log("🔥 HEALTH CHECK HIT");
-
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: "Abhishek Digital API is working",
-    environment: process.env.VERCEL ? "vercel" : "local",
-    timestamp: new Date().toISOString(),
+    environment: process.env.VERCEL ? "vercel" : "local"
   });
 });
+
+
 
 // AI Consultant endpoint using Gemini SDK
 app.post('/api/ai/consultant', async (req, res) => {
@@ -321,52 +320,52 @@ app.post('/api/ai/consultant', async (req, res) => {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-//     if (apiKey && apiKey !== 'MY_GEMINI_API_KEY') {
-//       try {
-//         // const ai = new GoogleGenAI({
-//         //   apiKey: apiKey,
-//         //   httpOptions: {
-//         //     headers: {
-//         //       'User-Agent': 'aistudio-build',
-//         //     }
-//         //   }
-//         // });
+    if (apiKey && apiKey !== 'MY_GEMINI_API_KEY') {
+      try {
+        const ai = new GoogleGenAI({
+          apiKey: apiKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            }
+          }
+        });
 
-//         const prompt = `You are Abhishek's AI Digital Growth Consultant for businesses worldwide.
-// A business owner has asked for a recommended digital roadmap.
-// Business Type/Niche: "${businessType}"
-// Business Context/Details: "${description || 'None provided'}"
-// Target Goals: "${targetGoals || 'Customer acquisition & modern digital presence'}"
-// Budget Context: "${budget || 'Standard commercial'}"
+        const prompt = `You are Abhishek's AI Digital Growth Consultant for businesses worldwide.
+A business owner has asked for a recommended digital roadmap.
+Business Type/Niche: "${businessType}"
+Business Context/Details: "${description || 'None provided'}"
+Target Goals: "${targetGoals || 'Customer acquisition & modern digital presence'}"
+Budget Context: "${budget || 'Standard commercial'}"
 
-// Provide a sharp, high-converting digital blueprint in strict JSON format with this exact structure:
-// {
-//   "nicheSummary": "1-2 sentence executive assessment of this business niche and its digital growth opportunity.",
-//   "recommendedWebsite": "Key features required for their website/web app.",
-//   "recommendedMobile": "What mobile or PWA solutions would benefit them.",
-//   "recommendedAI": "Practical AI automation, chatbot, or agent workflows.",
-//   "recommendedMarketing": "Local SEO, Google Ads, or social media strategy.",
-//   "quickWin": "One immediate high-impact action they can take this week.",
-//   "recommendedServices": ["Service 1", "Service 2", "Service 3", "Service 4"],
-//   "estimatedTimeline": "e.g. 2–4 weeks"
-// }
-// Do not wrap in markdown quotes if possible, return pure JSON.`;
+Provide a sharp, high-converting digital blueprint in strict JSON format with this exact structure:
+{
+  "nicheSummary": "1-2 sentence executive assessment of this business niche and its digital growth opportunity.",
+  "recommendedWebsite": "Key features required for their website/web app.",
+  "recommendedMobile": "What mobile or PWA solutions would benefit them.",
+  "recommendedAI": "Practical AI automation, chatbot, or agent workflows.",
+  "recommendedMarketing": "Local SEO, Google Ads, or social media strategy.",
+  "quickWin": "One immediate high-impact action they can take this week.",
+  "recommendedServices": ["Service 1", "Service 2", "Service 3", "Service 4"],
+  "estimatedTimeline": "e.g. 2–4 weeks"
+}
+Do not wrap in markdown quotes if possible, return pure JSON.`;
 
-//         const response = await ai.models.generateContent({
-//           model: 'gemini-3.8-flash',
-//           contents: prompt,
-//           config: {
-//             responseMimeType: 'application/json'
-//           }
-//         });
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json'
+          }
+        });
 
-//         const rawText = response.text || '';
-//         const parsed = JSON.parse(rawText.trim());
-//         return res.json({ success: true, plan: parsed, provider: 'gemini-3.8-flash' });
-//       } catch (geminiError) {
-//         console.error('Gemini API call failed, falling back to smart heuristic:', geminiError);
-//       }
-//     }
+        const rawText = response.text || '';
+        const parsed = JSON.parse(rawText.trim());
+        return res.json({ success: true, plan: parsed, provider: 'gemini-3.8-flash' });
+      } catch (geminiError) {
+        console.error('Gemini API call failed, falling back to smart heuristic:', geminiError);
+      }
+    }
 
     // Smart heuristic fallback if API key is not configured or fails
     const cleanType = String(businessType).toLowerCase();
@@ -427,131 +426,96 @@ app.get("/api/leads", (req, res) => {
   });
 });
 
-// app.post("/api/leads", async (req, res) => {
-//   try {
-//     console.log("🚀 POST /api/leads called");
-//     console.log("📦 Request body:", JSON.stringify(req.body));
-
-//     const {
-//       name,
-//       businessName,
-//       email,
-//       phone,
-//       country,
-//       businessNiche,
-//       servicesRequired,
-//       platforms,
-//       goals,
-//       timeline,
-//       budgetRange,
-//       projectDescription
-//     } = req.body;
-
-//     if (!name || !email || !phone) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Name, email and phone number are required."
-//       });
-//     }
-
-//     const newLead: LeadRecord = {
-//       id: `lead-${Date.now()}`,
-//       createdAt: new Date().toISOString(),
-//       name: String(name).trim(),
-//       businessName: String(businessName || "").trim(),
-//       email: String(email).trim(),
-//       phone: String(phone).trim(),
-//       country: String(country || "Not specified").trim(),
-//       businessNiche: String(
-//         businessNiche || "General Business"
-//       ).trim(),
-//       servicesRequired: Array.isArray(servicesRequired)
-//         ? servicesRequired
-//         : [],
-//       platforms: Array.isArray(platforms)
-//         ? platforms
-//         : ["Website"],
-//       goals: Array.isArray(goals)
-//         ? goals
-//         : ["Get Leads"],
-//       timeline: String(timeline || "Flexible").trim(),
-//       budgetRange: String(budgetRange || "Flexible").trim(),
-//       projectDescription: String(
-//         projectDescription || ""
-//       ).trim(),
-//       status: "New"
-//     };
-
-//     console.log("✅ Lead created:", newLead.id);
-
-//     leadsStore.unshift(newLead);
-//     analyticsStore.quoteRequests += 1;
-
-//     console.log("✅ Lead added to memory");
-
-//     return res.status(201).json({
-//       success: true,
-//       message: "Project roadmap received successfully.",
-//       leadId: newLead.id,
-//       notificationSentTo: null,
-//       deliveryStatus: "email_temporarily_disabled"
-//     });
-
-//   } catch (err) {
-//     console.error("❌ LEAD API CRASH:", err);
-
-//     const errorMessage =
-//       err instanceof Error
-//         ? err.message
-//         : typeof err === "string"
-//           ? err
-//           : JSON.stringify(err);
-
-//     console.error("❌ ACTUAL ERROR:", errorMessage);
-
-//     return res.status(500).json({
-//       success: false,
-//       error: errorMessage
-//     });
-//   }
-// });
-
-// Dedicated endpoint to send custom inquiries / form submissions to abhishekkuntare02@gmail.com
-
-
-app.post("/api/leads", (req, res) => {
-  console.log("🔥 POST /api/leads HIT");
-
+app.post("/api/leads", async (req, res) => {
   try {
-    console.log("📦 BODY:", JSON.stringify(req.body));
+    console.log("🚀 POST /api/leads called");
+    console.log("📦 Request body:", JSON.stringify(req.body));
 
-    const { name, email, phone } = req.body || {};
+    const {
+      name,
+      businessName,
+      email,
+      phone,
+      country,
+      businessNiche,
+      servicesRequired,
+      platforms,
+      goals,
+      timeline,
+      budgetRange,
+      projectDescription
+    } = req.body;
 
     if (!name || !email || !phone) {
       return res.status(400).json({
         success: false,
-        error: "Name, email and phone are required.",
+        error: "Name, email and phone number are required."
       });
     }
 
+    const newLead: LeadRecord = {
+      id: `lead-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      name: String(name).trim(),
+      businessName: String(businessName || "").trim(),
+      email: String(email).trim(),
+      phone: String(phone).trim(),
+      country: String(country || "Not specified").trim(),
+      businessNiche: String(
+        businessNiche || "General Business"
+      ).trim(),
+      servicesRequired: Array.isArray(servicesRequired)
+        ? servicesRequired
+        : [],
+      platforms: Array.isArray(platforms)
+        ? platforms
+        : ["Website"],
+      goals: Array.isArray(goals)
+        ? goals
+        : ["Get Leads"],
+      timeline: String(timeline || "Flexible").trim(),
+      budgetRange: String(budgetRange || "Flexible").trim(),
+      projectDescription: String(
+        projectDescription || ""
+      ).trim(),
+      status: "New"
+    };
+
+    console.log("✅ Lead created:", newLead.id);
+
+    leadsStore.unshift(newLead);
+    analyticsStore.quoteRequests += 1;
+
+    console.log("✅ Lead added to memory");
+
     return res.status(201).json({
       success: true,
-      message: "Lead received successfully.",
-      leadId: `lead-${Date.now()}`,
+      message: "Project roadmap received successfully.",
+      leadId: newLead.id,
+      notificationSentTo: null,
+      deliveryStatus: "email_temporarily_disabled"
     });
-  } catch (error) {
-    console.error("🔥 LEAD ERROR:", error);
+
+  } catch (err) {
+    console.error("❌ LEAD API CRASH:", err);
+
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+
+    console.error("❌ ACTUAL ERROR:", errorMessage);
 
     return res.status(500).json({
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unknown server error",
+      error: errorMessage
     });
   }
 });
 
+// Dedicated endpoint to send custom inquiries / form submissions to abhishekkuntare02@gmail.com
 app.post('/api/send-email', async (req, res) => {
   try {
     const { name, email, phone, subject, message, formType, metadata } = req.body;
