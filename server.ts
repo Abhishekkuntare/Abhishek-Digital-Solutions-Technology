@@ -2,21 +2,24 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import { GoogleGenAI } from "@google/genai";
+import cors from "cors";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
-import cors from "cors";
 
 dotenv.config();
+
+// ============================================================
+// BASIC SETUP
+// ============================================================
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-/* ============================================================
-   MIDDLEWARE
-   ============================================================ */
+// ============================================================
+// MIDDLEWARE
+// ============================================================
 
 app.use(
   cors({
@@ -25,33 +28,56 @@ app.use(
   })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 
-/* ============================================================
-   EMAIL CONFIGURATION
-   ============================================================ */
+// ============================================================
+// EMAIL CONFIGURATION
+// ============================================================
 
 const TARGET_NOTIFICATION_EMAIL =
   process.env.NOTIFICATION_EMAIL ||
   "abhishekkuntare02@gmail.com";
 
-const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
-const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
-const SMTP_USER = process.env.SMTP_USER || "";
-const SMTP_PASS = process.env.SMTP_PASS || "";
+const SMTP_HOST =
+  process.env.SMTP_HOST ||
+  "smtp.gmail.com";
+
+const SMTP_PORT =
+  Number(process.env.SMTP_PORT || 587);
+
+const SMTP_USER =
+  process.env.SMTP_USER ||
+  "";
+
+const SMTP_PASS =
+  process.env.SMTP_PASS ||
+  "";
 
 const EMAIL_FROM =
   process.env.EMAIL_FROM ||
-  `Abhishek Digital <${SMTP_USER || "abhishekkuntare02@gmail.com"}>`;
+  `Abhishek Digital <${SMTP_USER || TARGET_NOTIFICATION_EMAIL}>`;
 
-/*
- * Gmail SMTP transporter.
- *
- * IMPORTANT:
- * SMTP_PASS must be a Gmail APP PASSWORD,
- * NOT your normal Gmail password.
- */
+console.log("==============================================");
+console.log("📧 EMAIL CONFIGURATION");
+console.log("==============================================");
+console.log("Provider: Gmail SMTP");
+console.log("SMTP Host:", SMTP_HOST);
+console.log("SMTP Port:", SMTP_PORT);
+console.log("SMTP User:", SMTP_USER ? "configured" : "missing");
+console.log("SMTP Password:", SMTP_PASS ? "configured" : "missing");
+console.log("Notification Email:", TARGET_NOTIFICATION_EMAIL);
+console.log("Environment:", process.env.VERCEL ? "Vercel" : "Local");
+console.log("==============================================");
+
+if (!SMTP_USER || !SMTP_PASS) {
+  console.warn(
+    "⚠️ SMTP_USER or SMTP_PASS is missing. Email sending will not work."
+  );
+}
+
+// Create transporter.
+// This does NOT send an email during startup.
 const mailTransporter =
   SMTP_USER && SMTP_PASS
     ? nodemailer.createTransport({
@@ -62,25 +88,61 @@ const mailTransporter =
           user: SMTP_USER,
           pass: SMTP_PASS,
         },
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 20000,
       })
     : null;
 
-/* ============================================================
-   DATA STORAGE
-   ============================================================ */
+// ============================================================
+// DATA STORAGE
+// ============================================================
+//
+// IMPORTANT:
+// Vercel serverless functions do NOT provide persistent local
+// storage. Therefore:
+// - Local development -> data/*.json
+// - Vercel -> memory only
+//
+// Email sending does NOT depend on filesystem storage.
+// ============================================================
+
+const IS_VERCEL = Boolean(process.env.VERCEL);
 
 const DATA_DIR = path.join(process.cwd(), "data");
-
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
 const LEADS_FILE = path.join(DATA_DIR, "leads.json");
 const EMAIL_LOGS_FILE = path.join(DATA_DIR, "email_logs.json");
 
-/* ============================================================
-   EMAIL LOG TYPES
-   ============================================================ */
+if (!IS_VERCEL) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (error) {
+    console.warn(
+      "Could not create local data directory:",
+      error
+    );
+  }
+}
+
+// ============================================================
+// TYPES
+// ============================================================
+
+type LeadStatus =
+  | "New"
+  | "Contacted"
+  | "Proposal Sent"
+  | "In Discussion"
+  | "Won"
+  | "Lost";
+
+type EmailType =
+  | "project_roadmap"
+  | "contact_form"
+  | "ai_blueprint"
+  | "score_audit";
 
 export interface EmailLogRecord {
   id: string;
@@ -90,19 +152,41 @@ export interface EmailLogRecord {
   senderName: string;
   senderEmail: string;
   senderPhone: string;
-  type:
-    | "project_roadmap"
-    | "contact_form"
-    | "ai_blueprint"
-    | "score_audit";
+  type: EmailType;
   summary: string;
   status: "sent" | "failed";
   notes?: string;
 }
 
+interface LeadRecord {
+  id: string;
+  createdAt: string;
+  name: string;
+  businessName: string;
+  email: string;
+  phone: string;
+  country: string;
+  businessNiche: string;
+  servicesRequired: string[];
+  platforms: string[];
+  goals: string[];
+  timeline: string;
+  budgetRange: string;
+  projectDescription: string;
+  status: LeadStatus;
+  notes?: string;
+}
+
+// ============================================================
+// EMAIL LOG STORE
+// ============================================================
+
 const emailLogsStore: EmailLogRecord[] = [];
 
-function saveEmailLogsToFile() {
+function saveEmailLogsToFile(): void {
+  // NEVER attempt filesystem persistence on Vercel.
+  if (IS_VERCEL) return;
+
   try {
     fs.writeFileSync(
       EMAIL_LOGS_FILE,
@@ -110,32 +194,45 @@ function saveEmailLogsToFile() {
       "utf8"
     );
   } catch (error) {
-    console.error("Error writing email logs:", error);
+    console.error(
+      "Error writing email logs:",
+      error
+    );
   }
 }
 
-function loadEmailLogsFromFile() {
-  try {
-    if (fs.existsSync(EMAIL_LOGS_FILE)) {
-      const data = JSON.parse(
-        fs.readFileSync(EMAIL_LOGS_FILE, "utf8")
-      );
+function loadEmailLogsFromFile(): void {
+  if (IS_VERCEL) return;
 
-      if (Array.isArray(data)) {
-        emailLogsStore.length = 0;
-        emailLogsStore.push(...data);
-      }
+  try {
+    if (!fs.existsSync(EMAIL_LOGS_FILE)) {
+      return;
+    }
+
+    const raw = fs.readFileSync(
+      EMAIL_LOGS_FILE,
+      "utf8"
+    );
+
+    const data = JSON.parse(raw);
+
+    if (Array.isArray(data)) {
+      emailLogsStore.length = 0;
+      emailLogsStore.push(...data);
     }
   } catch (error) {
-    console.error("Error loading email logs:", error);
+    console.error(
+      "Error loading email logs:",
+      error
+    );
   }
 }
 
 loadEmailLogsFromFile();
 
-/* ============================================================
-   EMAIL HELPERS
-   ============================================================ */
+// ============================================================
+// HTML HELPERS
+// ============================================================
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -146,7 +243,9 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, "&#039;");
 }
 
-function formatDateTime(date = new Date()): string {
+function formatDateTime(
+  date = new Date()
+): string {
   return date.toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
     weekday: "short",
@@ -164,16 +263,24 @@ function getInitials(name: string): string {
     .split(/\s+/)
     .filter(Boolean);
 
-  if (parts.length === 0) return "US";
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
+  if (parts.length === 0) {
+    return "US";
   }
 
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  if (parts.length === 1) {
+    return parts[0]
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return `${parts[0][0]}${
+    parts[parts.length - 1][0]
+  }`.toUpperCase();
 }
 
-function getFormTitle(type: string): string {
+function getFormTitle(
+  type: EmailType
+): string {
   switch (type) {
     case "project_roadmap":
       return "Project Roadmap Received";
@@ -189,7 +296,9 @@ function getFormTitle(type: string): string {
   }
 }
 
-function getFormSubtitle(type: string): string {
+function getFormSubtitle(
+  type: EmailType
+): string {
   switch (type) {
     case "project_roadmap":
       return "A new project roadmap has been submitted through your website.";
@@ -205,7 +314,9 @@ function getFormSubtitle(type: string): string {
   }
 }
 
-function getTypeLabel(type: string): string {
+function getTypeLabel(
+  type: EmailType
+): string {
   switch (type) {
     case "project_roadmap":
       return "PROJECT ROADMAP";
@@ -221,44 +332,40 @@ function getTypeLabel(type: string): string {
   }
 }
 
-function formatList(value?: string | string[]): string {
+function formatList(
+  value?: string | string[]
+): string {
   if (Array.isArray(value)) {
-    return value.length ? value.join(", ") : "Not specified";
+    return value.length
+      ? value.join(", ")
+      : "Not specified";
   }
 
-  return value && String(value).trim()
+  return value &&
+    String(value).trim()
     ? String(value)
     : "Not specified";
 }
 
-/* ============================================================
-   PREMIUM EMAIL HTML
-   ============================================================ */
+// ============================================================
+// PREMIUM EMAIL HTML
+// ============================================================
 
 function buildPremiumLeadEmail(params: {
-  type:
-    | "project_roadmap"
-    | "contact_form"
-    | "ai_blueprint"
-    | "score_audit";
-
+  type: EmailType;
   senderName: string;
   senderEmail: string;
   senderPhone?: string;
-
   businessName?: string;
   country?: string;
   niche?: string;
-
   services?: string | string[];
   platforms?: string | string[];
   goals?: string | string[];
-
   budget?: string;
   timeline?: string;
   message?: string;
   summary?: string;
-
   metadata?: Record<string, any>;
 }) {
   const {
@@ -282,7 +389,6 @@ function buildPremiumLeadEmail(params: {
   const title = getFormTitle(type);
   const subtitle = getFormSubtitle(type);
   const typeLabel = getTypeLabel(type);
-
   const initials = getInitials(senderName);
   const timestamp = formatDateTime();
 
@@ -338,9 +444,9 @@ function buildPremiumLeadEmail(params: {
     message || "No additional notes provided."
   ).replace(/\r?\n/g, "<br>");
 
-  /* ==========================================================
-     ACTION LINKS
-     ========================================================== */
+  // ==========================================================
+  // ACTION LINKS
+  // ==========================================================
 
   const cleanPhone = String(
     senderPhone || ""
@@ -358,11 +464,13 @@ function buildPremiumLeadEmail(params: {
     `Re: ${title}`
   )}`;
 
-  /* ==========================================================
-     METADATA
-     ========================================================== */
+  // ==========================================================
+  // METADATA
+  // ==========================================================
 
-  const metadataRows = Object.entries(metadata || {})
+  const metadataRows = Object.entries(
+    metadata || {}
+  )
     .filter(
       ([, value]) =>
         value !== undefined &&
@@ -372,7 +480,13 @@ function buildPremiumLeadEmail(params: {
     .map(([key, value]) => {
       const label = key
         .replace(/([A-Z])/g, " $1")
-        .replace(/^./, (char) => char.toUpperCase());
+        .replace(/^./, (char) =>
+          char.toUpperCase()
+        );
+
+      const displayValue = Array.isArray(value)
+        ? value.join(", ")
+        : String(value);
 
       return `
         <tr>
@@ -381,11 +495,7 @@ function buildPremiumLeadEmail(params: {
           </td>
 
           <td style="padding:8px 0;color:#e8edf5;font-size:12px;font-weight:600;vertical-align:top;">
-            ${escapeHtml(
-              Array.isArray(value)
-                ? value.join(", ")
-                : value
-            )}
+            ${escapeHtml(displayValue)}
           </td>
         </tr>
       `;
@@ -443,9 +553,9 @@ function buildPremiumLeadEmail(params: {
     `
     : "";
 
-  /* ==========================================================
-     MESSAGE
-     ========================================================== */
+  // ==========================================================
+  // MESSAGE SECTION
+  // ==========================================================
 
   const messageSection = `
     <tr>
@@ -498,9 +608,9 @@ function buildPremiumLeadEmail(params: {
     </tr>
   `;
 
-  /* ==========================================================
-     WHATSAPP BUTTON
-     ========================================================== */
+  // ==========================================================
+  // WHATSAPP BUTTON
+  // ==========================================================
 
   const whatsappButton = whatsappUrl
     ? `
@@ -528,12 +638,11 @@ function buildPremiumLeadEmail(params: {
     `
     : "";
 
-  /* ==========================================================
-     HTML EMAIL
-     ========================================================== */
+  // ==========================================================
+  // HTML EMAIL
+  // ==========================================================
 
   const html = `<!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -543,7 +652,7 @@ function buildPremiumLeadEmail(params: {
 <meta
   name="viewport"
   content="width=device-width,initial-scale=1.0"
->
+/>
 
 <title>${escapeHtml(title)}</title>
 
@@ -698,7 +807,7 @@ a {
     margin-top:3px;
   "
 >
-  Digital Products &amp; AI Solutions
+  Digital Products & AI Solutions
 </div>
 
 </td>
@@ -938,7 +1047,7 @@ a {
 </div>
 
 <a
-  href="mailto:${safeEmail}"
+  href="mailto:${escapeHtml(senderEmail || "")}"
   style="
     color:#38bdf8;
     font-size:12px;
@@ -1516,9 +1625,9 @@ ${whatsappButton}
 
 </html>`;
 
-  /* ==========================================================
-     PLAIN TEXT EMAIL
-     ========================================================== */
+  // ==========================================================
+  // PLAIN TEXT VERSION
+  // ==========================================================
 
   const text = [
     title,
@@ -1529,8 +1638,12 @@ ${whatsappButton}
     "CLIENT",
     `Name: ${senderName || "Website Visitor"}`,
     `Email: ${senderEmail || "Not provided"}`,
-    `Phone / WhatsApp: ${senderPhone || "Not provided"}`,
-    `Business: ${businessName || "Not specified"}`,
+    `Phone / WhatsApp: ${
+      senderPhone || "Not provided"
+    }`,
+    `Business: ${
+      businessName || "Not specified"
+    }`,
     `Country: ${country || "Not specified"}`,
     `Industry: ${niche || "Not specified"}`,
     "",
@@ -1544,7 +1657,9 @@ ${whatsappButton}
     "CLIENT NOTES",
     message || "No additional notes provided.",
     "",
-    summary ? `SUMMARY\n${summary}` : "",
+    summary
+      ? `SUMMARY\n${summary}`
+      : "",
     "",
     "Abhishek Digital",
     "Digital Products & AI Solutions",
@@ -1558,37 +1673,26 @@ ${whatsappButton}
   };
 }
 
-/* ============================================================
-   SMTP EMAIL SENDER
-   ============================================================ */
+// ============================================================
+// SMTP EMAIL SENDER
+// ============================================================
 
 async function sendNotificationEmail(params: {
   subject: string;
-
   senderName: string;
   senderEmail: string;
   senderPhone: string;
-
-  type:
-    | "project_roadmap"
-    | "contact_form"
-    | "ai_blueprint"
-    | "score_audit";
-
+  type: EmailType;
   summary: string;
-
   businessName?: string;
   country?: string;
   niche?: string;
-
   services?: string | string[];
   platforms?: string | string[];
   goals?: string | string[];
-
   budget?: string;
   timeline?: string;
   message?: string;
-
   metadata?: Record<string, any>;
 }) {
   const {
@@ -1610,148 +1714,114 @@ async function sendNotificationEmail(params: {
     metadata,
   } = params;
 
-  /* ==========================================================
-     VALIDATE SMTP CONFIG
-     ========================================================== */
-
   if (!SMTP_USER) {
     throw new Error(
-      "SMTP_USER is missing. Add SMTP_USER to Vercel Environment Variables."
+      "SMTP_USER is missing in environment variables."
     );
   }
 
   if (!SMTP_PASS) {
     throw new Error(
-      "SMTP_PASS is missing. Add your Gmail App Password to Vercel Environment Variables."
+      "SMTP_PASS is missing. Use a Gmail App Password."
     );
   }
 
   if (!mailTransporter) {
     throw new Error(
-      "SMTP transporter is not configured."
+      "SMTP transporter could not be initialized."
     );
   }
 
-  const { html, text } = buildPremiumLeadEmail({
-    type,
-    senderName,
-    senderEmail,
-    senderPhone,
-    businessName,
-    country,
-    niche,
-    services,
-    platforms,
-    goals,
-    budget,
-    timeline,
-    message,
-    summary,
-    metadata,
-  });
+  const { html, text } =
+    buildPremiumLeadEmail({
+      type,
+      senderName,
+      senderEmail,
+      senderPhone,
+      businessName,
+      country,
+      niche,
+      services,
+      platforms,
+      goals,
+      budget,
+      timeline,
+      message,
+      summary,
+      metadata,
+    });
 
   console.log("==============================================");
-  console.log("📧 Sending premium lead email via Gmail SMTP");
-  console.log("SMTP Host:", SMTP_HOST);
-  console.log("SMTP Port:", SMTP_PORT);
+  console.log("📧 SENDING EMAIL");
+  console.log("Provider: Gmail SMTP");
   console.log("To:", TARGET_NOTIFICATION_EMAIL);
   console.log("From:", EMAIL_FROM);
   console.log("Reply-To:", senderEmail);
   console.log("Subject:", subject);
   console.log("Type:", type);
+  console.log(
+    "Environment:",
+    IS_VERCEL ? "Vercel" : "Local"
+  );
   console.log("==============================================");
 
+  const info = await mailTransporter.sendMail({
+    from: EMAIL_FROM,
+    to: TARGET_NOTIFICATION_EMAIL,
+    replyTo: senderEmail,
+    subject,
+    html,
+    text,
+  });
+
+  const messageId =
+    info.messageId ||
+    `mail-${Date.now()}`;
+
+  const emailLog: EmailLogRecord = {
+    id: messageId,
+    sentAt: new Date().toISOString(),
+    to: TARGET_NOTIFICATION_EMAIL,
+    subject,
+    senderName,
+    senderEmail,
+    senderPhone,
+    type,
+    summary,
+    status: "sent",
+    notes: `Accepted by Gmail SMTP. Message ID: ${messageId}`,
+  };
+
+  emailLogsStore.unshift(emailLog);
+
+  // Keep latest 100 logs.
+  emailLogsStore.splice(100);
+
+  // Storage failure must NEVER break email delivery.
   try {
-    const info = await mailTransporter.sendMail({
-      from: EMAIL_FROM,
-      to: TARGET_NOTIFICATION_EMAIL,
-      replyTo: senderEmail,
-      subject,
-      html,
-      text,
-    });
-
-    const emailId =
-      info.messageId ||
-      `smtp-mail-${Date.now()}`;
-
-    const emailLog: EmailLogRecord = {
-      id: emailId,
-      sentAt: new Date().toISOString(),
-      to: TARGET_NOTIFICATION_EMAIL,
-      subject,
-      senderName,
-      senderEmail,
-      senderPhone,
-      type,
-      summary,
-      status: "sent",
-      notes: `Accepted by Gmail SMTP. Message ID: ${emailId}`,
-    };
-
-    emailLogsStore.unshift(emailLog);
-
-    emailLogsStore.splice(100);
-
     saveEmailLogsToFile();
-
-    console.log(
-      "✅ Email accepted by Gmail SMTP:",
-      emailId
+  } catch (error) {
+    console.warn(
+      "Could not save email log:",
+      error
     );
-
-    return {
-      success: true,
-      emailLog,
-      emailId,
-    };
-  } catch (smtpError: any) {
-    console.error("❌ Gmail SMTP error:", smtpError);
-
-    const errorMessage =
-      smtpError?.message ||
-      "Email delivery failed through Gmail SMTP.";
-
-    throw new Error(errorMessage);
   }
+
+  console.log(
+    "✅ Email accepted by Gmail SMTP:",
+    messageId
+  );
+
+  return {
+    success: true,
+    emailLog,
+    messageId,
+  };
 }
 
-/* ============================================================
-   LEAD DATA
-   ============================================================ */
-
-interface LeadRecord {
-  id: string;
-  createdAt: string;
-
-  name: string;
-  businessName: string;
-
-  email: string;
-  phone: string;
-
-  country: string;
-  businessNiche: string;
-
-  servicesRequired: string[];
-  platforms: string[];
-  goals: string[];
-
-  timeline: string;
-  budgetRange: string;
-
-  projectDescription: string;
-
-  status:
-    | "New"
-    | "Contacted"
-    | "Proposal Sent"
-    | "In Discussion"
-    | "Won"
-    | "Lost";
-
-  notes?: string;
-}
+// ============================================================
+// LEAD DATA
+// ============================================================
 
 const leadsStore: LeadRecord[] = [
   {
@@ -1761,13 +1831,21 @@ const leadsStore: LeadRecord[] = [
     ).toISOString(),
 
     name: "Dr. Sarah Jenkins",
-    businessName: "Coastal Smiles Dental",
 
-    email: "sarah@coastalsmiles.example",
-    phone: "+1 415-555-0182",
+    businessName:
+      "Coastal Smiles Dental",
 
-    country: "United States",
-    businessNiche: "Dental Clinic",
+    email:
+      "sarah@coastalsmiles.example",
+
+    phone:
+      "+1 415-555-0182",
+
+    country:
+      "United States",
+
+    businessNiche:
+      "Dental Clinic",
 
     servicesRequired: [
       "Website",
@@ -1787,8 +1865,11 @@ const leadsStore: LeadRecord[] = [
       "Automate Business",
     ],
 
-    timeline: "2–4 weeks",
-    budgetRange: "$2,500 – $5,000",
+    timeline:
+      "2–4 weeks",
+
+    budgetRange:
+      "$2,500 – $5,000",
 
     projectDescription:
       "We want to revamp our dental practice website and install automated appointment reminders to stop patient no-shows.",
@@ -1801,18 +1882,27 @@ const leadsStore: LeadRecord[] = [
 
   {
     id: "lead-102",
+
     createdAt: new Date(
       Date.now() - 3600000 * 48
     ).toISOString(),
 
     name: "Vikram Mehta",
-    businessName: "Spice Route Fine Dining",
 
-    email: "vikram@spiceroute.example",
-    phone: "+91 98200 12345",
+    businessName:
+      "Spice Route Fine Dining",
 
-    country: "India",
-    businessNiche: "Restaurant",
+    email:
+      "vikram@spiceroute.example",
+
+    phone:
+      "+91 98200 12345",
+
+    country:
+      "India",
+
+    businessNiche:
+      "Restaurant",
 
     servicesRequired: [
       "Website",
@@ -1833,20 +1923,31 @@ const leadsStore: LeadRecord[] = [
       "Build Brand",
     ],
 
-    timeline: "ASAP",
-    budgetRange: "₹1,50,000 – ₹3,00,000",
+    timeline:
+      "ASAP",
+
+    budgetRange:
+      "₹1,50,000 – ₹3,00,000",
 
     projectDescription:
       "Want to stop paying 28% commissions to Swiggy/Zomato. Need our own direct delivery ordering platform.",
 
-    status: "Proposal Sent",
+    status:
+      "Proposal Sent",
 
     notes:
       "Sent Growth Package proposal.",
   },
 ];
 
-function saveLeadsToFile() {
+// ============================================================
+// LEAD FILE STORAGE
+// ============================================================
+
+function saveLeadsToFile(): void {
+  // Do not write to the Vercel filesystem.
+  if (IS_VERCEL) return;
+
   try {
     fs.writeFileSync(
       LEADS_FILE,
@@ -1855,30 +1956,37 @@ function saveLeadsToFile() {
     );
   } catch (error) {
     console.error(
-      "Error saving leads to file:",
+      "Error saving leads:",
       error
     );
   }
 }
 
-function loadLeadsFromFile() {
-  try {
-    if (fs.existsSync(LEADS_FILE)) {
-      const data = JSON.parse(
-        fs.readFileSync(LEADS_FILE, "utf8")
-      );
+function loadLeadsFromFile(): void {
+  if (IS_VERCEL) return;
 
-      if (
-        Array.isArray(data) &&
-        data.length > 0
-      ) {
-        leadsStore.length = 0;
-        leadsStore.push(...data);
-      }
+  try {
+    if (!fs.existsSync(LEADS_FILE)) {
+      return;
+    }
+
+    const raw = fs.readFileSync(
+      LEADS_FILE,
+      "utf8"
+    );
+
+    const data = JSON.parse(raw);
+
+    if (
+      Array.isArray(data) &&
+      data.length > 0
+    ) {
+      leadsStore.length = 0;
+      leadsStore.push(...data);
     }
   } catch (error) {
     console.error(
-      "Error loading leads from file:",
+      "Error loading leads:",
       error
     );
   }
@@ -1886,12 +1994,13 @@ function loadLeadsFromFile() {
 
 loadLeadsFromFile();
 
-/* ============================================================
-   ANALYTICS
-   ============================================================ */
+// ============================================================
+// ANALYTICS
+// ============================================================
 
 const analyticsStore = {
   pageViews: 1420,
+
   searchesCount: 680,
 
   topSearchedNiches: [
@@ -1918,27 +2027,114 @@ const analyticsStore = {
   ],
 
   quoteRequests: 18,
+
   whatsappClicks: 42,
+
   phoneClicks: 21,
 };
 
-/* ============================================================
-   HEALTH
-   ============================================================ */
+// ============================================================
+// HEALTH
+// ============================================================
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Abhishek Digital API is working",
-    environment: process.env.VERCEL
-      ? "vercel"
-      : "local",
-  });
-});
+app.get(
+  "/api/health",
+  (_req, res) => {
+    res.status(200).json({
+      success: true,
+      message:
+        "Abhishek Digital API is working",
+      environment: IS_VERCEL
+        ? "vercel"
+        : "local",
+      timestamp:
+        new Date().toISOString(),
+    });
+  }
+);
 
-/* ============================================================
-   AI CONSULTANT
-   ============================================================ */
+// ============================================================
+// SMTP HEALTH CHECK
+// ============================================================
+
+app.get(
+  "/api/email-status",
+  async (_req, res) => {
+    const configured =
+      Boolean(
+        SMTP_USER &&
+        SMTP_PASS &&
+        mailTransporter
+      );
+
+    let smtpConnection = "not_checked";
+
+    if (configured) {
+      try {
+        await mailTransporter!.verify();
+
+        smtpConnection = "connected";
+      } catch (error: any) {
+        console.error(
+          "SMTP verification failed:",
+          error
+        );
+
+        smtpConnection =
+          "failed";
+      }
+    }
+
+    const recentLog =
+      emailLogsStore[0] || null;
+
+    return res.json({
+      success: true,
+
+      environment:
+        IS_VERCEL
+          ? "vercel"
+          : "local",
+
+      provider:
+        "gmail-smtp",
+
+      targetEmail:
+        TARGET_NOTIFICATION_EMAIL,
+
+      smtpConfigured:
+        configured,
+
+      smtpConnection,
+
+      smtpHost:
+        SMTP_HOST,
+
+      smtpPort:
+        SMTP_PORT,
+
+      emailFrom:
+        EMAIL_FROM,
+
+      totalDispatched:
+        emailLogsStore.length,
+
+      recentStatus:
+        recentLog
+          ? recentLog.status
+          : "ready",
+
+      recentNotes:
+        recentLog
+          ? recentLog.notes
+          : "Ready to send email notifications through Gmail SMTP.",
+    });
+  }
+);
+
+// ============================================================
+// AI CONSULTANT
+// ============================================================
 
 app.post(
   "/api/ai/consultant",
@@ -1953,10 +2149,20 @@ app.post(
 
       if (!businessType) {
         return res.status(400).json({
+          success: false,
           error:
             "Business type or description is required.",
         });
       }
+
+      // ======================================================
+      // TRY GEMINI DYNAMICALLY
+      // ======================================================
+      //
+      // Dynamic import means a problem with the Gemini SDK
+      // cannot crash /api/health or /api/leads during startup.
+      //
+      // ======================================================
 
       const apiKey =
         process.env.GEMINI_API_KEY;
@@ -1966,52 +2172,57 @@ app.post(
         apiKey !== "MY_GEMINI_API_KEY"
       ) {
         try {
-          const ai = new GoogleGenAI({
-            apiKey,
-            httpOptions: {
-              headers: {
-                "User-Agent": "aistudio-build",
-              },
-            },
-          });
+          const { GoogleGenAI } =
+            await import("@google/genai");
+
+          const ai =
+            new GoogleGenAI({
+              apiKey,
+            });
 
           const prompt = `
 You are Abhishek's AI Digital Growth Consultant for businesses worldwide.
 
-A business owner has asked for a recommended digital roadmap.
+Business Type/Niche:
+${String(businessType)}
 
-Business Type/Niche: "${businessType}"
+Business Context:
+${String(
+  description || "None provided"
+)}
 
-Business Context/Details: "${description || "None provided"}"
+Target Goals:
+${String(
+  targetGoals ||
+    "Customer acquisition and modern digital presence"
+)}
 
-Target Goals: "${
-            targetGoals ||
-            "Customer acquisition & modern digital presence"
-          }"
+Budget:
+${String(
+  budget || "Standard commercial"
+)}
 
-Budget Context: "${
-            budget || "Standard commercial"
-          }"
-
-Provide a sharp, high-converting digital blueprint in strict JSON format with this exact structure:
+Return ONLY valid JSON using exactly this structure:
 
 {
-  "nicheSummary": "1-2 sentence executive assessment of this business niche and its digital growth opportunity.",
-  "recommendedWebsite": "Key features required for their website/web app.",
-  "recommendedMobile": "What mobile or PWA solutions would benefit them.",
-  "recommendedAI": "Practical AI automation, chatbot, or agent workflows.",
-  "recommendedMarketing": "Local SEO, Google Ads, or social media strategy.",
-  "quickWin": "One immediate high-impact action they can take this week.",
+  "nicheSummary": "1-2 sentence executive assessment.",
+  "recommendedWebsite": "Key website/web app features.",
+  "recommendedMobile": "Mobile or PWA recommendation.",
+  "recommendedAI": "Practical AI automation.",
+  "recommendedMarketing": "SEO, Google Ads and social strategy.",
+  "quickWin": "One immediate action.",
   "recommendedServices": ["Service 1", "Service 2", "Service 3", "Service 4"],
-  "estimatedTimeline": "e.g. 2–4 weeks"
+  "estimatedTimeline": "2-4 weeks"
 }
-
-Do not wrap in markdown quotes if possible, return pure JSON.
 `;
+
+          const model =
+            process.env.GEMINI_MODEL ||
+            "gemini-2.5-flash";
 
           const response =
             await ai.models.generateContent({
-              model: "gemini-3.8-flash",
+              model,
               contents: prompt,
               config: {
                 responseMimeType:
@@ -2022,53 +2233,58 @@ Do not wrap in markdown quotes if possible, return pure JSON.
           const rawText =
             response.text || "";
 
-          const parsed = JSON.parse(
-            rawText.trim()
-          );
+          if (rawText.trim()) {
+            const parsed =
+              JSON.parse(
+                rawText.trim()
+              );
 
-          return res.json({
-            success: true,
-            plan: parsed,
-            provider:
-              "gemini-3.8-flash",
-          });
+            return res.json({
+              success: true,
+              plan: parsed,
+              provider: model,
+            });
+          }
         } catch (geminiError) {
           console.error(
-            "Gemini API call failed, falling back to smart heuristic:",
+            "Gemini failed. Using fallback engine:",
             geminiError
           );
         }
       }
 
-      /* ======================================================
-         SMART FALLBACK
-         ====================================================== */
+      // ======================================================
+      // INTELLIGENT FALLBACK
+      // ======================================================
 
       const cleanType =
-        String(businessType).toLowerCase();
+        String(
+          businessType
+        ).toLowerCase();
 
-      let nicheSummary = `For ${businessType}, modern digital trust and automated client booking represent the highest leverage points.`;
+      let nicheSummary =
+        `For ${businessType}, modern digital trust and automated client booking represent the highest-leverage growth opportunities.`;
 
       let recommendedWebsite =
-        "Ultra-fast responsive website with high-converting showcase gallery, customer reviews, and clear localized service breakdown.";
+        "Ultra-fast responsive website with a high-converting showcase gallery, customer reviews, clear service breakdown, and strong contact CTAs.";
 
       let recommendedMobile =
-        "Mobile-first Progressive Web App (PWA) with push notifications and instant thumb-friendly contact buttons.";
+        "Mobile-first Progressive Web App with push notifications and thumb-friendly contact, booking, and WhatsApp actions.";
 
       let recommendedAI =
-        "24/7 WhatsApp AI Customer Support assistant trained on your FAQs, operating hours, and service catalog to capture after-hours inquiries.";
+        "24/7 WhatsApp AI customer support assistant trained on FAQs, operating hours, services, and common customer questions.";
 
       let recommendedMarketing =
-        "Google Business Profile optimization to rank in top-3 Google Maps pack, plus localized search ads.";
+        "Google Business Profile optimization, localized SEO, Google Search Ads, customer review generation, and social content.";
 
       let quickWin =
-        "Implement a direct 1-click WhatsApp booking trigger on your primary page to immediately stop bounce-offs.";
+        "Implement a one-click WhatsApp booking CTA on the main website page to capture visitors immediately.";
 
       let recommendedServices = [
         "High-Speed Business Website",
         "Online Booking / Order System",
         "24/7 WhatsApp AI Assistant",
-        "Local SEO Dominance",
+        "Local SEO Growth",
       ];
 
       if (
@@ -2077,16 +2293,16 @@ Do not wrap in markdown quotes if possible, return pure JSON.
         cleanType.includes("clinic")
       ) {
         nicheSummary =
-          "Dental practices scale fastest when combining real smile proof, real-time calendar booking, and automated reminder sequences to stop no-shows.";
+          "Dental and healthcare practices can grow faster by combining strong trust signals, online appointment booking, automated reminders, and local search visibility.";
 
         recommendedWebsite =
-          "Interactive smile gallery, treatment breakdown (implants, Invisalign), and 24/7 calendar appointment scheduler.";
+          "Interactive treatment pages, before-and-after gallery, doctor profiles, testimonials, FAQ sections, and online appointment scheduling.";
 
         recommendedAI =
-          "WhatsApp automated appointment confirmation, day-before reminder broadcasts, and review collection bot.";
+          "WhatsApp appointment assistant with confirmations, reminders, FAQ handling, and review collection.";
 
         recommendedMarketing =
-          'Dominate local "best dentist in [city]" Google Maps searches and high-intent Google Search Ads.';
+          'Dominate local searches such as "best dentist near me" through Google Maps optimization, reviews, local SEO, and high-intent Search Ads.';
 
         recommendedServices = [
           "Interactive Clinic Website",
@@ -2100,19 +2316,19 @@ Do not wrap in markdown quotes if possible, return pure JSON.
         cleanType.includes("cafe")
       ) {
         nicheSummary =
-          "Culinary brands maximize profit by replacing third-party aggregator commissions with zero-commission direct ordering and QR menus.";
+          "Restaurants can improve margins by replacing aggregator dependence with direct ordering, QR menus, reservations, customer retention, and local discovery.";
 
         recommendedWebsite =
-          "Visual digital menu, table reservation engine, and frictionless direct delivery ordering.";
+          "Visual digital menu, direct ordering, table reservations, QR menu experience, offers, location, reviews, and mobile-first checkout.";
 
         recommendedAI =
-          "Automated WhatsApp order status updates and promotional festival broadcasting.";
+          "WhatsApp order updates, customer FAQ automation, reservation assistant, and promotional campaigns.";
 
         recommendedMarketing =
-          "Mouth-watering photography optimization, Instagram reel creatives, and Google Maps local discovery.";
+          "Google Maps optimization, local SEO, Instagram content, food photography, customer reviews, and location-based campaigns.";
 
         recommendedServices = [
-          "Digital Menu & Direct Food Ordering",
+          "Digital Menu & Direct Ordering",
           "Table Reservation Engine",
           "QR Code Dine-In System",
           "Google Business Optimization",
@@ -2123,21 +2339,21 @@ Do not wrap in markdown quotes if possible, return pure JSON.
         cleanType.includes("property")
       ) {
         nicheSummary =
-          "Real estate brokerages require interactive 3D property tours paired with automated buyer qualification to protect agent time.";
+          "Real estate businesses benefit from high-quality property discovery experiences combined with automated lead qualification and localized advertising.";
 
         recommendedWebsite =
-          "Interactive map property search, Matterport 3D walkthroughs, and localized mortgage calculator.";
+          "Interactive property search, maps, advanced filters, property galleries, virtual tours, inquiry forms, and mortgage calculators.";
 
         recommendedAI =
-          "Buyer budget & timeline qualification chatbot that forwards pre-screened leads directly to the broker.";
+          "AI buyer qualification assistant that collects budget, location, property type, timeline, and contact details before forwarding qualified leads.";
 
         recommendedMarketing =
-          "Geo-targeted Google PPC campaigns for high-ticket developments and luxury villa buyers.";
+          "Geo-targeted Google Ads, local SEO, property-specific landing pages, remarketing, and high-intent search campaigns.";
 
         recommendedServices = [
-          "Luxury Property Discovery Portal",
-          "Interactive Map & Filter Search",
-          "Automated Lead Qualification Bot",
+          "Property Discovery Portal",
+          "Interactive Map & Search",
+          "AI Lead Qualification",
           "Mortgage Calculator",
         ];
       }
@@ -2153,10 +2369,12 @@ Do not wrap in markdown quotes if possible, return pure JSON.
           recommendedMarketing,
           quickWin,
           recommendedServices,
-          estimatedTimeline: "2–4 weeks",
+          estimatedTimeline:
+            "2–4 weeks",
         },
 
-        provider: "intelligent-engine",
+        provider:
+          "intelligent-engine",
       });
     } catch (error) {
       console.error(
@@ -2165,6 +2383,7 @@ Do not wrap in markdown quotes if possible, return pure JSON.
       );
 
       return res.status(500).json({
+        success: false,
         error:
           "Failed to generate digital roadmap.",
       });
@@ -2172,20 +2391,23 @@ Do not wrap in markdown quotes if possible, return pure JSON.
   }
 );
 
-/* ============================================================
-   GET LEADS
-   ============================================================ */
+// ============================================================
+// GET LEADS
+// ============================================================
 
-app.get("/api/leads", (req, res) => {
-  res.json({
-    success: true,
-    leads: leadsStore,
-  });
-});
+app.get(
+  "/api/leads",
+  (_req, res) => {
+    return res.json({
+      success: true,
+      leads: leadsStore,
+    });
+  }
+);
 
-/* ============================================================
-   CREATE LEAD
-   ============================================================ */
+// ============================================================
+// CREATE LEAD
+// ============================================================
 
 app.post(
   "/api/leads",
@@ -2206,6 +2428,10 @@ app.post(
         projectDescription,
       } = req.body;
 
+      // ------------------------------------------------------
+      // VALIDATION
+      // ------------------------------------------------------
+
       if (!name || !email || !phone) {
         return res.status(400).json({
           success: false,
@@ -2214,16 +2440,23 @@ app.post(
         });
       }
 
+      // ------------------------------------------------------
+      // CREATE LEAD
+      // ------------------------------------------------------
+
       const newLead: LeadRecord = {
         id: `lead-${Date.now()}`,
 
         createdAt:
           new Date().toISOString(),
 
-        name: String(name).trim(),
+        name:
+          String(name).trim(),
 
         businessName:
-          String(businessName || "").trim(),
+          String(
+            businessName || ""
+          ).trim(),
 
         email:
           String(email).trim(),
@@ -2246,17 +2479,19 @@ app.post(
           Array.isArray(
             servicesRequired
           )
-            ? servicesRequired
+            ? servicesRequired.map(
+                String
+              )
             : [],
 
         platforms:
           Array.isArray(platforms)
-            ? platforms
+            ? platforms.map(String)
             : ["Website"],
 
         goals:
           Array.isArray(goals)
-            ? goals
+            ? goals.map(String)
             : ["Get Leads"],
 
         timeline:
@@ -2277,9 +2512,19 @@ app.post(
         status: "New",
       };
 
-      leadsStore.unshift(newLead);
+      leadsStore.unshift(
+        newLead
+      );
 
-      analyticsStore.quoteRequests += 1;
+      analyticsStore.quoteRequests +=
+        1;
+
+      // Save locally only.
+      saveLeadsToFile();
+
+      // ------------------------------------------------------
+      // EMAIL DATA
+      // ------------------------------------------------------
 
       const servicesList =
         newLead.servicesRequired.join(
@@ -2299,9 +2544,14 @@ app.post(
       const emailSubject =
         `🚀 Project Roadmap Received! [${newLead.businessNiche}] from ${newLead.name}`;
 
+      // ------------------------------------------------------
+      // SEND EMAIL
+      // ------------------------------------------------------
+
       const emailResult =
         await sendNotificationEmail({
-          subject: emailSubject,
+          subject:
+            emailSubject,
 
           senderName:
             newLead.name,
@@ -2357,6 +2607,10 @@ app.post(
           },
         });
 
+      // ------------------------------------------------------
+      // SUCCESS
+      // ------------------------------------------------------
+
       return res.status(201).json({
         success: true,
 
@@ -2373,7 +2627,7 @@ app.post(
           emailResult.emailLog.id,
 
         emailId:
-          emailResult.emailId,
+          emailResult.messageId,
 
         deliveryStatus:
           emailResult.emailLog.status,
@@ -2389,7 +2643,7 @@ app.post(
           ? err.message
           : typeof err === "string"
           ? err
-          : JSON.stringify(err);
+          : "Failed to create lead and send email.";
 
       return res.status(500).json({
         success: false,
@@ -2399,9 +2653,9 @@ app.post(
   }
 );
 
-/* ============================================================
-   SEND EMAIL
-   ============================================================ */
+// ============================================================
+// SEND EMAIL
+// ============================================================
 
 app.post(
   "/api/send-email",
@@ -2415,15 +2669,12 @@ app.post(
         message,
         formType,
         metadata,
-
         businessName,
         country,
         niche,
-
         services,
         platforms,
         goals,
-
         budget,
         timeline,
       } = req.body;
@@ -2436,15 +2687,18 @@ app.post(
         });
       }
 
-      const allowedTypes = [
-        "project_roadmap",
-        "contact_form",
-        "ai_blueprint",
-        "score_audit",
-      ] as const;
+      const allowedTypes: EmailType[] =
+        [
+          "project_roadmap",
+          "contact_form",
+          "ai_blueprint",
+          "score_audit",
+        ];
 
-      const normalizedType =
-        allowedTypes.includes(formType)
+      const normalizedType: EmailType =
+        allowedTypes.includes(
+          formType
+        )
           ? formType
           : "contact_form";
 
@@ -2464,7 +2718,9 @@ app.post(
             String(email).trim(),
 
           senderPhone:
-            String(phone || "").trim(),
+            String(
+              phone || ""
+            ).trim(),
 
           type:
             normalizedType,
@@ -2509,10 +2765,9 @@ app.post(
 
           summary:
             message
-              ? String(message).slice(
-                  0,
-                  160
-                )
+              ? String(
+                  message
+                ).slice(0, 160)
               : `${normalizedType} form submission`,
 
           metadata: {
@@ -2539,7 +2794,7 @@ app.post(
           result.emailLog.id,
 
         emailId:
-          result.emailId,
+          result.messageId,
 
         deliveryStatus:
           result.emailLog.status,
@@ -2562,13 +2817,13 @@ app.post(
   }
 );
 
-/* ============================================================
-   TEST EMAIL
-   ============================================================ */
+// ============================================================
+// TEST EMAIL
+// ============================================================
 
 app.post(
   "/api/send-test-email",
-  async (req, res) => {
+  async (_req, res) => {
     try {
       const result =
         await sendNotificationEmail({
@@ -2612,10 +2867,10 @@ app.post(
             "Immediate",
 
           message:
-            "This is a test email from the Abhishek Digital website. If you received this message, Gmail SMTP email delivery is configured correctly.",
+            "This is a test email from the Abhishek Digital website. If you received this message, Gmail SMTP production email delivery is working correctly.",
 
           summary:
-            "Production/local Gmail SMTP email system verification.",
+            "Production SMTP email system verification.",
 
           metadata: {
             test: true,
@@ -2635,7 +2890,7 @@ app.post(
           TARGET_NOTIFICATION_EMAIL,
 
         emailId:
-          result.emailId,
+          result.messageId,
 
         log:
           result.emailLog,
@@ -2657,13 +2912,35 @@ app.post(
   }
 );
 
-/* ============================================================
-   CSV EXPORT
-   ============================================================ */
+// ============================================================
+// EMAIL LOGS
+// ============================================================
+
+app.get(
+  "/api/email-logs",
+  (_req, res) => {
+    return res.json({
+      success: true,
+
+      targetEmail:
+        TARGET_NOTIFICATION_EMAIL,
+
+      totalLogs:
+        emailLogsStore.length,
+
+      logs:
+        emailLogsStore,
+    });
+  }
+);
+
+// ============================================================
+// CSV EXPORT
+// ============================================================
 
 app.get(
   "/api/export-leads",
-  (req, res) => {
+  (_req, res) => {
     try {
       const headers = [
         "ID",
@@ -2681,70 +2958,105 @@ app.get(
         "Description",
       ];
 
-      const rows = leadsStore.map(
-        (lead) => [
-          lead.id,
+      const rows =
+        leadsStore.map(
+          (lead) => [
+            lead.id,
 
-          `"${lead.createdAt}"`,
+            `"${lead.createdAt}"`,
 
-          `"${(lead.name || "").replace(
-            /"/g,
-            '""'
-          )}"`,
+            `"${(
+              lead.name || ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.businessName || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.businessName ||
+              ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.email || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.email || ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.phone || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.phone || ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.country || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.country || ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.businessNiche || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.businessNiche ||
+              ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.servicesRequired.join(
-              "; "
-            ) || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.servicesRequired.join(
+                "; "
+              ) || ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.budgetRange || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.budgetRange ||
+              ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${(
-            lead.timeline || ""
-          ).replace(/"/g, '""')}"`,
+            `"${(
+              lead.timeline ||
+              ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
 
-          `"${lead.status}"`,
+            `"${lead.status}"`,
 
-          `"${(
-            lead.projectDescription ||
-            ""
-          ).replace(/"/g, '""')}"`,
-        ]
-      );
+            `"${(
+              lead.projectDescription ||
+              ""
+            ).replace(
+              /"/g,
+              '""'
+            )}"`,
+          ]
+        );
 
       const csvContent = [
         headers.join(","),
-        ...rows.map((row) =>
-          row.join(",")
+        ...rows.map(
+          (row) =>
+            row.join(",")
         ),
       ].join("\n");
 
       res.setHeader(
         "Content-Type",
-        "text/csv"
+        "text/csv; charset=utf-8"
       );
 
       res.setHeader(
@@ -2752,96 +3064,27 @@ app.get(
         `attachment; filename="leads-abhishek-${Date.now()}.csv"`
       );
 
-      res.send(csvContent);
+      return res.send(
+        csvContent
+      );
     } catch (err) {
-      res.status(500).json({
+      console.error(
+        "CSV export error:",
+        err
+      );
+
+      return res.status(500).json({
+        success: false,
         error:
-          "Failed to export leads",
+          "Failed to export leads.",
       });
     }
   }
 );
 
-/* ============================================================
-   EMAIL STATUS
-   ============================================================ */
-
-app.get(
-  "/api/email-status",
-  (req, res) => {
-    const recentLog =
-      emailLogsStore[0] || null;
-
-    return res.json({
-      success: true,
-
-      environment:
-        process.env.VERCEL
-          ? "vercel"
-          : "local",
-
-      provider:
-        "gmail-smtp",
-
-      targetEmail:
-        TARGET_NOTIFICATION_EMAIL,
-
-      smtpConfigured:
-        Boolean(
-          SMTP_USER &&
-          SMTP_PASS
-        ),
-
-      smtpHost:
-        SMTP_HOST,
-
-      smtpPort:
-        SMTP_PORT,
-
-      emailFrom:
-        EMAIL_FROM,
-
-      totalDispatched:
-        emailLogsStore.length,
-
-      recentStatus:
-        recentLog
-          ? recentLog.status
-          : "ready",
-
-      recentNotes:
-        recentLog
-          ? recentLog.notes
-          : "Ready to send email notifications via Gmail SMTP.",
-    });
-  }
-);
-
-/* ============================================================
-   EMAIL LOGS
-   ============================================================ */
-
-app.get(
-  "/api/email-logs",
-  (req, res) => {
-    res.json({
-      success: true,
-
-      targetEmail:
-        TARGET_NOTIFICATION_EMAIL,
-
-      totalLogs:
-        emailLogsStore.length,
-
-      logs:
-        emailLogsStore,
-    });
-  }
-);
-
-/* ============================================================
-   UPDATE LEAD
-   ============================================================ */
+// ============================================================
+// UPDATE LEAD
+// ============================================================
 
 app.patch(
   "/api/leads/:id",
@@ -2862,44 +3105,67 @@ app.patch(
 
     if (!lead) {
       return res.status(404).json({
+        success: false,
         error:
           "Lead not found.",
       });
     }
 
     if (status) {
-      lead.status = status;
+      const validStatuses: LeadStatus[] =
+        [
+          "New",
+          "Contacted",
+          "Proposal Sent",
+          "In Discussion",
+          "Won",
+          "Lost",
+        ];
+
+      if (
+        validStatuses.includes(
+          status
+        )
+      ) {
+        lead.status = status;
+      }
     }
 
     if (
       notes !== undefined
     ) {
-      lead.notes = notes;
+      lead.notes = String(
+        notes
+      );
     }
 
     saveLeadsToFile();
 
-    res.json({
+    return res.json({
       success: true,
       lead,
     });
   }
 );
 
-/* ============================================================
-   ANALYTICS
-   ============================================================ */
+// ============================================================
+// ANALYTICS GET
+// ============================================================
 
 app.get(
   "/api/analytics",
-  (req, res) => {
-    res.json({
+  (_req, res) => {
+    return res.json({
       success: true,
       analytics:
         analyticsStore,
     });
   }
 );
+
+// ============================================================
+// ANALYTICS EVENT
+// ============================================================
 
 app.post(
   "/api/analytics/event",
@@ -2919,13 +3185,17 @@ app.post(
       type === "search" &&
       payload?.niche
     ) {
-      analyticsStore.searchesCount += 1;
+      analyticsStore.searchesCount +=
+        1;
 
       const existing =
         analyticsStore.topSearchedNiches.find(
           (item) =>
-            item.niche.toLowerCase() ===
-            payload.niche.toLowerCase()
+            item.niche
+              .toLowerCase() ===
+            String(
+              payload.niche
+            ).toLowerCase()
         );
 
       if (existing) {
@@ -2933,8 +3203,9 @@ app.post(
       } else {
         analyticsStore.topSearchedNiches.push(
           {
-            niche:
-              payload.niche,
+            niche: String(
+              payload.niche
+            ),
             count: 1,
           }
         );
@@ -2945,27 +3216,33 @@ app.post(
       type ===
       "whatsapp_click"
     ) {
-      analyticsStore.whatsappClicks += 1;
+      analyticsStore.whatsappClicks +=
+        1;
     }
 
     else if (
       type ===
       "phone_click"
     ) {
-      analyticsStore.phoneClicks += 1;
+      analyticsStore.phoneClicks +=
+        1;
     }
 
-    res.json({
+    return res.json({
       success: true,
     });
   }
 );
 
-/* ============================================================
-   LOCAL DEVELOPMENT
-   ============================================================ */
+// ============================================================
+// LOCAL FRONTEND
+// ============================================================
+//
+// This section runs ONLY locally.
+// Vercel uses api/[...path].ts to invoke Express.
+// ============================================================
 
-if (!process.env.VERCEL) {
+if (!IS_VERCEL) {
   const distPath =
     path.join(
       __dirname,
@@ -2978,18 +3255,36 @@ if (!process.env.VERCEL) {
     )
   );
 
-  app.get("*", (req, res) => {
-    res.sendFile(
-      path.join(
-        distPath,
-        "index.html"
-      )
-    );
-  });
+  // Regex avoids Express wildcard route compatibility issues.
+  app.get(
+    /.*/,
+    (req, res) => {
+      // Never replace API errors with index.html.
+      if (
+        req.path.startsWith(
+          "/api/"
+        )
+      ) {
+        return res.status(404).json({
+          success: false,
+          error:
+            "API endpoint not found.",
+        });
+      }
+
+      return res.sendFile(
+        path.join(
+          distPath,
+          "index.html"
+        )
+      );
+    }
+  );
 
   const PORT =
-    Number(process.env.PORT) ||
-    3000;
+    Number(
+      process.env.PORT
+    ) || 3000;
 
   app.listen(
     PORT,
@@ -3010,8 +3305,8 @@ if (!process.env.VERCEL) {
   );
 }
 
-/* ============================================================
-   VERCEL EXPORT
-   ============================================================ */
+// ============================================================
+// VERCEL EXPORT
+// ============================================================
 
 export default app;
