@@ -3320,9 +3320,11 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
+  console.log("HEALTH ENDPOINT HIT");
+
   res.status(200).json({
     success: true,
-    message: "API is working",
+    message: "Abhishek Digital API is working",
     environment: process.env.VERCEL ? "vercel" : "local",
   });
 });
