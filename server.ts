@@ -1130,10 +1130,8 @@ app.post('/api/analytics/event', (req, res) => {
 if (!process.env.VERCEL) {
   const distPath = path.join(__dirname, "dist");
 
-  // Serve Vite production build
   app.use(express.static(distPath));
 
-  // Frontend fallback
   app.get("*", (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
@@ -1145,5 +1143,4 @@ if (!process.env.VERCEL) {
   });
 }
 
-// Export Express app for Vercel serverless functions
 export default app;
