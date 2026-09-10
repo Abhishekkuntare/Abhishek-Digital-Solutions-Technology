@@ -77,16 +77,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [statusUpdateMsg, setStatusUpdateMsg] = useState('');
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
   const [testEmailMsg, setTestEmailMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [smtpConfigured, setSmtpConfigured] = useState<boolean | null>(null);
   const [copiedLeadId, setCopiedLeadId] = useState<string | null>(null);
 
   // Fetch leads, email logs, and analytics
   const fetchDashboardData = async () => {
     setLoadingLeads(true);
     try {
-      const [leadsRes, analyticsRes, emailLogsRes] = await Promise.all([
+      const [leadsRes, analyticsRes, emailLogsRes, emailStatusRes] = await Promise.all([
         fetch('/api/leads'),
         fetch('/api/analytics'),
-        fetch('/api/email-logs')
+        fetch('/api/email-logs'),
+        fetch('/api/email-status')
       ]);
 
       const leadsData = await leadsRes.json();
@@ -101,6 +103,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       }
       if (emailLogsData.success && emailLogsData.logs) {
         setEmailLogs(emailLogsData.logs);
+      }
+      if (emailStatusRes.ok) {
+        const emailStatusData = await emailStatusRes.json();
+        setSmtpConfigured(Boolean(emailStatusData.smtpConfigured || emailStatusData.resendConfigured));
       }
     } catch (err) {
       console.error('Error fetching admin data:', err);
@@ -149,13 +155,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       if (data.success) {
         setTestEmailMsg({
           type: 'success',
-          text: `Success! Test email was dispatched to abhishekkuntare02@gmail.com.`
+          text: data.needsActivation
+            ? `Activation required. Open the FormSubmit email in abhishekkuntare02@gmail.com and click the confirm button.`
+            : `Success! Test email was dispatched to abhishekkuntare02@gmail.com.`
         });
         fetchDashboardData();
       } else {
         setTestEmailMsg({
           type: 'error',
-          text: data.error || 'Failed to dispatch test email.'
+          text: data.message || data.error || 'Failed to dispatch test email. Set SMTP_USER and SMTP_PASS.'
         });
       }
     } catch (err) {
@@ -550,8 +558,12 @@ Notes: ${lead.projectDescription || 'None'}
               <div className="text-xs font-bold text-white flex flex-wrap items-center gap-2">
                 <span>Email Delivery Hub</span>
 
-                <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">
-                  Active
+                <span className={`text-[9px] px-2 py-0.5 rounded font-mono ${
+                  smtpConfigured
+                    ? 'bg-emerald-500/20 text-emerald-300'
+                    : 'bg-amber-500/20 text-amber-300'
+                }`}>
+                  {smtpConfigured ? 'SMTP Ready' : 'SMTP Missing'}
                 </span>
               </div>
 
