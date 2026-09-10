@@ -1145,4 +1145,5 @@ if (!process.env.VERCEL) {
   });
 }
 
+// Export Express app for Vercel serverless functions
 export default app;

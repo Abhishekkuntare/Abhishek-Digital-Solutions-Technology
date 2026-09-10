@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
+
 import app from "../server";
 
 export const config = {
@@ -10,9 +11,14 @@ export const config = {
 
 export default function handler(req: IncomingMessage, res: ServerResponse) {
   const forwardedUri = req.headers["x-forwarded-uri"];
-  const originalPath = Array.isArray(forwardedUri) ? forwardedUri[0] : forwardedUri;
+  const originalPath = Array.isArray(forwardedUri)
+    ? forwardedUri[0]
+    : forwardedUri;
 
-  if (originalPath && (req.url === "/api" || req.url === "/api/" || req.url === "/")) {
+  if (
+    originalPath &&
+    (req.url === "/api" || req.url === "/api/" || req.url === "/")
+  ) {
     req.url = originalPath;
   }
 
