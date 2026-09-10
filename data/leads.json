@@ -1,5 +1,33 @@
 [
   {
+    "id": "lead-1789028751804",
+    "createdAt": "2026-09-10T08:25:51.805Z",
+    "name": "Abhishek Kuntare",
+    "businessName": "",
+    "email": "abhishekkuntare7@gmail.com",
+    "phone": "+919156075536",
+    "country": "India",
+    "businessNiche": "Plumbing",
+    "servicesRequired": [
+      "High-Converting Website",
+      "24/7 AI WhatsApp / Web Bot",
+      "Edge Cloud Infrastructure & SLA Maintenance",
+      "Google Maps Local SEO & Ads Funnel"
+    ],
+    "platforms": [
+      "Responsive Website",
+      "Tablet / POS Kiosk Display",
+      "All Platforms (Unified Suite)"
+    ],
+    "goals": [
+      "Get Inbound Leads & Inquiries"
+    ],
+    "timeline": "2–4 Weeks (Standard)",
+    "budgetRange": "$2,700 – $4,185",
+    "projectDescription": "",
+    "status": "New"
+  },
+  {
     "id": "lead-1788974537567",
     "createdAt": "2026-09-09T17:22:17.568Z",
     "name": "User",

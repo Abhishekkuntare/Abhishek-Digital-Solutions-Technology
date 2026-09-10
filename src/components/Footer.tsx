@@ -237,31 +237,7 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             {/* Social Links */}
-            <div className="mt-7">
-              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600">
-                Connect with me
-              </p>
-
-              <div className="flex items-center gap-2">
-                {socialLinks.map((social) => {
-                  const Icon = social.icon;
-
-                  return (
-                    <a
-                      key={social.name}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={social.label}
-                      title={social.label}
-                      className="group flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-400 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-300"
-                    >
-                      <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
+          
           </div>
 
           {/* DIGITAL SOLUTIONS */}
