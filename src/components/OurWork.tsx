@@ -1667,6 +1667,7 @@ import {
   Smartphone,
   RotateCw,
   Tablet,
+  Home,
 } from "lucide-react";
 
 /* =========================================================
@@ -1824,6 +1825,29 @@ const PROJECTS: Project[] = [
     "Immersive UI",
   ],
   icon: Sparkles,
+},
+{
+  id: "homebuilders",
+  number: "08",
+  title: "Homebuilders",
+  subtitle: "Premium Real Estate Experience",
+  category: "Real Estate • Architecture • Web",
+  description:
+    "A modern real-estate and homebuilding experience designed to showcase premium residential properties, projects, and construction services through an immersive and responsive digital interface. Homebuilders combines elegant visual design, smooth interactions, property-focused content, and a premium architectural aesthetic to create a sophisticated experience across desktop, tablet, and mobile.",
+  url: "https://homebuilders-neon.vercel.app/",
+  github: "https://github.com/Abhishekkuntare/homebuilders",
+  tags: [
+    "Real Estate",
+    "Homebuilders",
+    "Property Showcase",
+    "Architecture",
+    "Residential Projects",
+    "Property Discovery",
+    "Responsive UI",
+    "Immersive UI",
+    "Modern Web",
+  ],
+  icon: Home,
 },
 ];
 
