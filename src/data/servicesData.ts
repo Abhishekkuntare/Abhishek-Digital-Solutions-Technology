@@ -226,88 +226,125 @@ export const SERVICES_CATALOG: ServiceCategory[] = [
     ]
   }
 ];
+export interface ServiceBundle {
+  id: string;
+  name: string;
+  badge: string;
+  tagline: string;
+  description: string;
+  features: string[];
+  idealFor: string;
+  startingUSD: number;
+  startingINR: number;
+  deliveryTime: string;
+  popular: boolean;
+}
 
 export const SERVICE_BUNDLES: ServiceBundle[] = [
   {
-    id: 'local-starter',
-    name: 'Local Business Starter',
-    badge: 'Essential',
-    tagline: 'Ideal for local clinics, contractors, restaurants, and independent firms.',
-    description: 'Get your local business found, trusted, and contacted online with zero technical friction.',
+    id: "local-starter",
+
+    name: "Local Business Starter",
+
+    badge: "Essential",
+
+    tagline:
+      "Ideal for local clinics, contractors, restaurants, and independent firms.",
+
+    description:
+      "Get your local business found, trusted, and contacted online with zero technical friction.",
+
     features: [
-      'Custom Mobile-Responsive Business Website',
-      'Google Business Profile Setup & Local Maps Rank',
+      "Custom Mobile-Responsive Business Website",
+      "Google Business Profile Setup & Local Maps Rank",
       'Fundamental SEO for "services in [city]"',
-      'WhatsApp Direct Chat & One-Click Call Triggers',
-      'Mobile-Friendly Contact & Inquiry Forms',
-      'Cloud Hosting & Fast SSL Security Setup',
-      '30 Days Post-Launch Support & Minor Edits'
+      "WhatsApp Direct Chat & One-Click Call Triggers",
+      "Mobile-Friendly Contact & Inquiry Forms",
+      "Cloud Hosting & Fast SSL Security Setup",
+      "30 Days Post-Launch Support & Minor Edits",
     ],
-    idealFor: 'Local businesses, solo practitioners, neighborhood stores',
-    startingUSD: 750,
-    deliveryTime: '7–10 Days',
-    popular: false
+
+    idealFor:
+      "Local businesses, solo practitioners, neighborhood stores",
+
+    startingUSD: 399,
+
+    startingINR: 2999,
+
+    deliveryTime: "7–10 Days",
+
+    popular: false,
   },
+
   {
-    id: 'growth-package',
-    name: 'Growth & Customer Acquisition',
-    badge: 'Most Popular',
-    tagline: 'Scale inquiries, dominate local competitors, and automate customer booking.',
-    description: 'A complete customer-acquisition machine designed to generate daily inbound leads.',
+    id: "growth-package",
+
+    name: "Growth & Customer Acquisition",
+
+    badge: "Most Popular",
+
+    tagline:
+      "Scale inquiries, dominate local competitors, and automate customer booking.",
+
+    description:
+      "A complete customer-acquisition machine designed to generate daily inbound leads.",
+
     features: [
-      'High-Speed Conversion Engineered Website',
-      'Real-Time Appointment / Booking Calendar',
-      'Google 5-Star Review Automation Funnel',
-      'High-ROI Google / Meta Ads Landing Page',
-      '10 Custom Social Media Banners & Promo Creatives',
-      'Automated WhatsApp & Email Lead Notifications',
-      'Full SEO Optimization & Schema Structured Data',
-      'Analytics Dashboard with Conversion Tracking'
+      "High-Speed Conversion Engineered Website",
+      "Real-Time Appointment / Booking Calendar",
+      "Google 5-Star Review Automation Funnel",
+      "High-ROI Google / Meta Ads Landing Page",
+      "10 Custom Social Media Banners & Promo Creatives",
+      "Automated WhatsApp & Email Lead Notifications",
+      "Full SEO Optimization & Schema Structured Data",
+      "Analytics Dashboard with Conversion Tracking",
     ],
-    idealFor: 'Growing businesses wanting consistent qualified leads',
-    startingUSD: 1600,
-    deliveryTime: '2–3 Weeks',
-    popular: true
+
+    idealFor:
+      "Growing businesses wanting consistent qualified leads",
+
+    startingUSD: 799,
+
+    startingINR: 19990,
+
+    deliveryTime: "2–3 Weeks",
+
+    popular: true,
   },
+
   {
-    id: 'digital-transformation',
-    name: 'Digital Transformation & App Suite',
-    badge: 'Comprehensive',
-    tagline: 'For established brands seeking full modernization, mobile apps, and automation.',
-    description: 'Full-scale digital overhaul: website, mobile applications, CRM workflows, and AI support.',
+    id: "digital-transformation",
+
+    name: "Digital Transformation & App Suite",
+
+    badge: "Comprehensive",
+
+    tagline:
+      "For established brands seeking full modernization, mobile apps, and automation.",
+
+    description:
+      "Full-scale digital overhaul: website, mobile applications, CRM workflows, and AI support.",
+
     features: [
-      'Flagship Web Platform + Custom Client Portal',
-      'Cross-Platform Mobile Application (Android & iOS)',
-      '24/7 AI Customer Support & Appointment Assistant',
-      'Automated Invoicing, CRM & Multi-Tool Integration',
-      'Advanced Customer Loyalty / Member Accounts',
-      'Multi-Location / Multi-Branch Management',
-      'High-Concurrency Cloud Architecture (AWS / GCP)',
-      'Dedicated Account Engineer & Priority Uptime SLA'
+      "Flagship Web Platform + Custom Client Portal",
+      "Cross-Platform Mobile Application (Android & iOS)",
+      "24/7 AI Customer Support & Appointment Assistant",
+      "Automated Invoicing, CRM & Multi-Tool Integration",
+      "Advanced Customer Loyalty / Member Accounts",
+      "Multi-Location / Multi-Branch Management",
+      "High-Concurrency Cloud Architecture (AWS / GCP)",
+      "Dedicated Account Engineer & Priority Uptime SLA",
     ],
-    idealFor: 'Multi-location businesses, dental chains, gym networks, boutique stays',
-    startingUSD: 3400,
-    deliveryTime: '4–6 Weeks',
-    popular: false
+
+    idealFor:
+      "Multi-location businesses, dental chains, gym networks, boutique stays",
+
+    startingUSD: 1999,
+
+    startingINR: 35999,
+
+    deliveryTime: "4–6 Weeks",
+
+    popular: false,
   },
-  {
-    id: 'custom-enterprise',
-    name: 'Custom Enterprise & SaaS',
-    badge: 'Bespoke',
-    tagline: 'Tailored software architecture, custom AI models, and mission-critical systems.',
-    description: 'Engineered from the ground up for high volume, custom compliance, and proprietary software.',
-    features: [
-      'Custom Full-Stack Web & Mobile Architecture',
-      'Proprietary AI Agents & LLM Fine-Tuning',
-      'Enterprise ERP / POS / Legacy Systems Integration',
-      'SOC2 / HIPAA / GDPR Security Audit Preparation',
-      'Multi-Tenant Organization Workspaces & RBAC',
-      'Unlimited Scalability on Kubernetes / Serverless',
-      '24/7/365 Emergency Hotline & Engineering SLA'
-    ],
-    idealFor: 'Startups, SaaS companies, and international corporations',
-    startingUSD: 6500,
-    deliveryTime: 'Custom Timeline',
-    popular: false
-  }
 ];

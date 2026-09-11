@@ -1781,7 +1781,27 @@ const PROJECTS: Project[] = [
       "WebGL",
     ],
     icon: Sparkles,
-  },
+  }, 
+ {
+  id: "kinetic",
+  number: "06",
+  title: "Kinetic",
+  subtitle: "Future Footwear Experience",
+  category: "3D • Interactive",
+  description:
+    "A futuristic footwear experience featuring immersive 3D visuals, cybernetic materials, interactive product exploration and a high-end cinematic shopping interface.",
+  url: "https://gsap-animated-store.preview.emergentagent.com/",
+  github: "",
+  tags: [
+    "3D Experience",
+    "Interactive",
+    "E-Commerce",
+    "GSAP",
+    "Cinematic UI",
+    "Product Experience",
+  ],
+  icon: Sparkles,
+},
 ];
 
 /* =========================================================
