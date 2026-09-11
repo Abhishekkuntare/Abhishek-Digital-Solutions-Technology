@@ -214,13 +214,124 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* Primary Action Button */}
-            <button
-              onClick={() => onOpenQuote()}
-              className="hidden sm:flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/35 transition-all transform active:scale-95 shrink-0 whitespace-nowrap"
-            >
-              <span>Start Project</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
+       {/* =====================================================
+    CUTE CTA CHARACTER + START PROJECT
+===================================================== */}
+
+  <div className="relative hidden sm:flex items-end pt-2">
+
+  {/* CUTE CHARACTER */}
+  <div className="cta-character">
+
+    {/* Speech bubble */}
+   
+
+    {/* Character */}
+    <div className="character-body">
+
+      {/* Head */}
+      <div className="character-head">
+
+        {/* Eyes */}
+        <span className="character-eye left-eye" />
+        <span className="character-eye right-eye" />
+
+        {/* Cute smile */}
+        <span className="character-smile" />
+
+      </div>
+
+      {/* Body */}
+      <div className="character-torso" />
+
+      {/* Left hand */}
+      <div className="character-hand character-hand-left" />
+
+      
+
+    </div>
+  </div>
+
+
+  {/* CTA BUTTON */}
+ {/* START PROJECT CTA */}
+<div className="relative hidden sm:flex items-center">
+
+  {/* Cute little character */}
+  <div className="little-cta-character" aria-hidden="true">
+
+    {/* Head */}
+    <div className="little-character-head">
+      <span className="little-eye little-eye-left" />
+      <span className="little-eye little-eye-right" />
+      <span className="little-mouth" />
+    </div>
+
+    {/* Body lying on button */}
+    <div className="little-character-body">
+      <div className="little-character-arm-left" />
+
+      {/* Waving hand */}
+      <div className="little-character-wave">
+        👋
+      </div>
+
+      <div className="little-character-leg-left" />
+      <div className="little-character-leg-right" />
+    </div>
+  </div>
+
+
+  {/* BUTTON */}
+  <button
+    onClick={() => onOpenQuote()}
+    className="
+      start-project-cta
+      relative
+      flex
+      items-center
+      gap-2
+      px-4
+      py-2
+      text-xs
+      font-bold
+      text-white
+      rounded-xl
+      whitespace-nowrap
+      group
+    "
+  >
+
+    {/* Button surface */}
+    <span className="start-project-surface">
+
+      {/* Moving shine */}
+      <span className="start-project-shine" />
+
+      <span className="relative z-10">
+        Start Project
+      </span>
+
+      <ArrowRight
+        className="
+          relative
+          z-10
+          w-3.5
+          h-3.5
+          transition-all
+          duration-500
+          group-hover:translate-x-1
+          group-hover:scale-110
+        "
+      />
+
+    </span>
+
+  </button>
+
+</div>
+
+</div>
 
             {/* Mobile Menu Toggle */}
             <button

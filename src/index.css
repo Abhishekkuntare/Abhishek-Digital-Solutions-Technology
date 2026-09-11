@@ -53,3 +53,497 @@
     linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
 }
+
+
+/* =====================================================
+   START PROJECT CTA
+===================================================== */
+
+.start-project-cta {
+  position: relative;
+
+  overflow: visible !important;
+
+  isolation: isolate;
+
+  padding: 0;
+
+  background: transparent;
+
+  border: 0;
+
+  cursor: pointer;
+}
+
+
+/* =====================================================
+   BUTTON SURFACE
+===================================================== */
+
+.start-project-surface {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 16px;
+
+  min-height: 40px;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      110deg,
+      rgb(6, 182, 212),
+      rgb(37, 99, 235)
+    );
+
+  border: 1px solid rgba(103, 232, 249, .35);
+
+  box-shadow:
+    0 7px 25px rgba(6, 182, 212, .20);
+
+  transition:
+    transform .45s cubic-bezier(.16, 1, .3, 1),
+    box-shadow .45s ease,
+    border-color .45s ease;
+}
+
+
+/* =====================================================
+   BUTTON HOVER
+===================================================== */
+
+.start-project-cta:hover .start-project-surface {
+  transform:
+    translateY(-2px)
+    scale(1.025);
+
+  border-color:
+    rgba(103, 232, 249, .7);
+
+  box-shadow:
+    0 12px 35px rgba(6, 182, 212, .32),
+    0 0 24px rgba(37, 99, 235, .15);
+}
+
+
+.start-project-cta:active .start-project-surface {
+  transform:
+    translateY(0)
+    scale(.97);
+}
+
+
+/* =====================================================
+   LITTLE CHARACTER
+
+   IMPORTANT:
+   It's attached to the BUTTON,
+   not the navbar.
+
+   Therefore it won't get randomly
+   positioned at the top of the screen.
+===================================================== */
+
+.little-cta-character {
+
+  position: absolute;
+
+  /*
+    Character sits ON the top edge
+    of the button.
+  */
+  right: 12px;
+  bottom: 27px;
+
+  width: 43px;
+  height: 35px;
+
+  z-index: 50;
+
+  pointer-events: none;
+
+  transform-origin:
+    bottom center;
+
+  animation:
+    littleCharacterFloat
+    4.2s
+    ease-in-out
+    infinite;
+}
+
+
+/* =====================================================
+   CHARACTER HEAD
+===================================================== */
+
+.little-character-head {
+
+  position: absolute;
+
+  left: 5px;
+  top: 0;
+
+  width: 23px;
+  height: 21px;
+
+  border-radius:
+    48%
+    48%
+    45%
+    45%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #d9fbff,
+      #67e8f9
+    );
+
+  border:
+    1.5px solid
+    rgba(255,255,255,.7);
+
+  box-shadow:
+    0 0 13px
+    rgba(34,211,238,.38);
+
+  transform:
+    rotate(-7deg);
+}
+
+
+/* =====================================================
+   EYES
+===================================================== */
+
+.little-eye {
+
+  position: absolute;
+
+  top: 8px;
+
+  width: 3px;
+  height: 4px;
+
+  border-radius: 50%;
+
+  background: #07111f;
+}
+
+.little-eye-left {
+  left: 6px;
+}
+
+.little-eye-right {
+  right: 6px;
+}
+
+
+/* =====================================================
+   CUTE SMILE
+===================================================== */
+
+.little-mouth {
+
+  position: absolute;
+
+  left: 50%;
+  bottom: 4px;
+
+  width: 7px;
+  height: 4px;
+
+  transform:
+    translateX(-50%);
+
+  border-bottom:
+    1.5px solid #07111f;
+
+  border-radius:
+    0 0 10px 10px;
+}
+
+
+/* =====================================================
+   BODY
+
+   Lying horizontally across
+   the top of the button.
+===================================================== */
+
+.little-character-body {
+
+  position: absolute;
+
+  left: 16px;
+  top: 17px;
+
+  width: 27px;
+  height: 13px;
+
+  border-radius:
+    8px
+    8px
+    6px
+    6px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgb(34,211,238),
+      rgb(37,99,235)
+    );
+
+  box-shadow:
+    0 4px 10px
+    rgba(6,182,212,.28);
+
+  transform:
+    rotate(-2deg);
+}
+
+
+/* =====================================================
+   LEFT ARM
+===================================================== */
+
+.little-character-arm-left {
+
+  position: absolute;
+
+  left: -5px;
+  top: 4px;
+
+  width: 10px;
+  height: 5px;
+
+  border-radius: 999px;
+
+  background:
+    rgb(103,232,249);
+
+  transform:
+    rotate(20deg);
+}
+
+
+/* =====================================================
+   WAVING HAND
+
+   Small + subtle.
+===================================================== */
+
+.little-character-wave {
+
+  position: absolute;
+
+  right: -9px;
+  top: -12px;
+
+  font-size: 14px;
+
+  line-height: 1;
+
+  transform-origin:
+    bottom center;
+
+  animation:
+    littleWave
+    2.8s
+    ease-in-out
+    infinite;
+}
+
+
+/* =====================================================
+   LEGS
+===================================================== */
+
+.little-character-leg-left,
+.little-character-leg-right {
+
+  position: absolute;
+
+  bottom: -3px;
+
+  width: 9px;
+  height: 5px;
+
+  border-radius: 999px;
+
+  background:
+    rgb(103,232,249);
+}
+
+.little-character-leg-left {
+  left: 3px;
+
+  transform:
+    rotate(20deg);
+}
+
+.little-character-leg-right {
+  left: 11px;
+
+  transform:
+    rotate(5deg);
+}
+
+
+/* =====================================================
+   CHARACTER FLOAT
+
+   VERY subtle.
+   Keeps it looking like it's resting
+   on the button instead of flying.
+===================================================== */
+
+@keyframes littleCharacterFloat {
+
+  0%,
+  100% {
+    transform:
+      translateY(0)
+      rotate(-1deg);
+  }
+
+  50% {
+    transform:
+      translateY(-3px)
+      rotate(1deg);
+  }
+}
+
+
+/* =====================================================
+   WAVE
+
+   The character occasionally waves.
+===================================================== */
+
+@keyframes littleWave {
+
+  0%,
+  55%,
+  100% {
+    transform:
+      rotate(0deg);
+  }
+
+  60% {
+    transform:
+      rotate(18deg);
+  }
+
+  65% {
+    transform:
+      rotate(-15deg);
+  }
+
+  70% {
+    transform:
+      rotate(16deg);
+  }
+
+  75% {
+    transform:
+      rotate(-8deg);
+  }
+
+  80% {
+    transform:
+      rotate(0deg);
+  }
+}
+
+
+/* =====================================================
+   BUTTON SHINE
+===================================================== */
+
+.start-project-shine {
+
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+
+  left: -65%;
+
+  width: 42%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.32),
+      transparent
+    );
+
+  transform:
+    skewX(-20deg);
+
+  animation:
+    startProjectShine
+    4.8s
+    ease-in-out
+    infinite;
+
+  pointer-events: none;
+}
+
+
+@keyframes startProjectShine {
+
+  0% {
+    left: -65%;
+  }
+
+  30%,
+  100% {
+    left: 140%;
+  }
+}
+
+
+/* =====================================================
+   CHARACTER REACTS WHEN BUTTON HOVERS
+===================================================== */
+
+.start-project-cta:hover
+~ * .little-cta-character {
+  transform:
+    translateY(-3px);
+}
+
+
+/* Better selector: character is previous sibling,
+   so use wrapper hover instead */
+
+.start-project-cta:hover
++ .little-cta-character {
+  transform:
+    translateY(-3px);
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .little-cta-character,
+  .little-character-wave,
+  .start-project-shine {
+    animation: none !important;
+  }
+
+}
