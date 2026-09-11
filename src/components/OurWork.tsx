@@ -1802,6 +1802,26 @@ const PROJECTS: Project[] = [
   ],
   icon: Sparkles,
 },
+{
+  id: "aura-fashion",
+  number: "07",
+  title: "Aura Fashion",
+  subtitle: "AI-Powered Fashion Experience",
+  category: "AI • Fashion • E-Commerce",
+  description:
+    "An AI-powered fashion shopping experience that combines modern e-commerce, intelligent product discovery, personalized styling and an immersive fashion-focused interface.",
+  url: "https://aurafashion.ai.studio/",
+  github: "",
+  tags: [
+    "AI Fashion",
+    "E-Commerce",
+    "Personalized Styling",
+    "AI Shopping",
+    "Fashion Experience",
+    "Interactive UI",
+  ],
+  icon: Sparkles,
+},
 ];
 
 /* =========================================================
