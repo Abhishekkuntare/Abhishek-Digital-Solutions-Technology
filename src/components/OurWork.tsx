@@ -1668,6 +1668,8 @@ import {
   RotateCw,
   Tablet,
   Home,
+  Dumbbell,
+  Utensils,
 } from "lucide-react";
 
 /* =========================================================
@@ -1692,23 +1694,31 @@ interface Project {
 ========================================================= */
 
 const PROJECTS: Project[] = [
+
+
   {
-    id: "comfortpro",
-    number: "01",
-    title: "ComfortPro HVAC",
-    subtitle: "Premium HVAC Service Experience",
-    category: "Business • Service",
+    id: "craveverse",
+    number: "1",
+    title: "CraveVerse",
+    subtitle: "Immersive Food Marketplace Experience",
+    category: "Food • Marketplace • Web",
     description:
-      "A modern conversion-focused HVAC platform built to turn local visitors into calls, quote requests and service bookings.",
-    url: "https://hvac-service-omega.vercel.app/",
-    github: "https://github.com/Abhishekkuntare/HVAC-Service",
+      "CraveVerse is a modern, immersive food marketplace experience designed to bring food discovery, restaurant exploration, short-form food reels, instant ordering, live delivery experiences, and intelligent food search into one digital ecosystem. The platform combines rich visual content, engaging interactions, restaurant-focused discovery, seamless ordering flows, and a responsive interface to create a dynamic food experience across desktop, tablet, and mobile.",
+    url: "https://craveverse-two.vercel.app/",
+    github: "YOUR_CRAVEVERSE_GITHUB_URL",
     tags: [
+      "Food Marketplace",
+      "Food Discovery",
+      "Restaurant Exploration",
+      "Food Reels",
+      "Online Ordering",
+      "Live Delivery",
+      "Intelligent Search",
       "Responsive UI",
-      "Local Business",
-      "Service Booking",
-      "Conversion UX",
+      "Immersive UI",
+      "Modern Web",
     ],
-    icon: Monitor,
+    icon: Utensils,
   },
 
   {
@@ -1782,73 +1792,119 @@ const PROJECTS: Project[] = [
       "WebGL",
     ],
     icon: Sparkles,
-  }, 
- 
-{
-  id: "aura-fashion",
-  number: "06",
-  title: "Aura Fashion App",
-  subtitle: "AI-Powered Fashion Experience",
-  category: "AI • Fashion • E-Commerce",
-  description:
-    "An AI-powered fashion shopping experience that combines modern e-commerce, intelligent product discovery, personalized styling and an immersive fashion-focused interface.",
-  url: "https://aurafashionapp-three.vercel.app/",
-  github: "",
-  tags: [
-    "AI Fashion",
-    "E-Commerce",
-    "Personalized Styling",
-    "AI Shopping",
-    "Fashion Experience",
-    "Interactive UI",
-  ],
-  icon: Sparkles,
-},
-{
-  id: "aura-atelier-ai",
-  number: "07",
-  title: "Aura Atelier",
-  subtitle: "AI Fashion Studio",
-  category: "AI • Fashion • E-Commerce",
-  description:
-    "A next-generation AI-powered fashion studio built around virtual try-on, AI styling, outfit discovery, digital wardrobes, and immersive fashion interfaces. Aura Atelier combines futuristic luxury aesthetics with intelligent fashion technology to create a personalized digital couture experience across desktop, tablet, and mobile.",
-  url: "https://aura-atelier-ai.vercel.app/",
-  github: "https://github.com/Abhishekkuntare/aura-atelier-ai",
-  tags: [
-    "AI Fashion",
-    "Virtual Try-On",
-    "AI Styling",
-    "Outfit Discovery",
-    "Digital Wardrobe",
-    "AI Shopping",
-    "E-Commerce",
-    "Immersive UI",
-  ],
-  icon: Sparkles,
-},
-{
-  id: "homebuilders",
-  number: "08",
-  title: "Homebuilders",
-  subtitle: "Premium Real Estate Experience",
-  category: "Real Estate • Architecture • Web",
-  description:
-    "A modern real-estate and homebuilding experience designed to showcase premium residential properties, projects, and construction services through an immersive and responsive digital interface. Homebuilders combines elegant visual design, smooth interactions, property-focused content, and a premium architectural aesthetic to create a sophisticated experience across desktop, tablet, and mobile.",
-  url: "https://homebuilders-neon.vercel.app/",
-  github: "https://github.com/Abhishekkuntare/homebuilders",
-  tags: [
-    "Real Estate",
-    "Homebuilders",
-    "Property Showcase",
-    "Architecture",
-    "Residential Projects",
-    "Property Discovery",
-    "Responsive UI",
-    "Immersive UI",
-    "Modern Web",
-  ],
-  icon: Home,
-},
+  },
+
+  {
+    id: "aura-fashion",
+    number: "06",
+    title: "Aura Fashion App",
+    subtitle: "AI-Powered Fashion Experience",
+    category: "AI • Fashion • E-Commerce",
+    description:
+      "An AI-powered fashion shopping experience that combines modern e-commerce, intelligent product discovery, personalized styling and an immersive fashion-focused interface.",
+    url: "https://aurafashionapp-three.vercel.app/",
+    github: "",
+    tags: [
+      "AI Fashion",
+      "E-Commerce",
+      "Personalized Styling",
+      "AI Shopping",
+      "Fashion Experience",
+      "Interactive UI",
+    ],
+    icon: Sparkles,
+  },
+  {
+    id: "aura-atelier-ai",
+    number: "07",
+    title: "Aura Atelier",
+    subtitle: "AI Fashion Studio",
+    category: "AI • Fashion • E-Commerce",
+    description:
+      "A next-generation AI-powered fashion studio built around virtual try-on, AI styling, outfit discovery, digital wardrobes, and immersive fashion interfaces. Aura Atelier combines futuristic luxury aesthetics with intelligent fashion technology to create a personalized digital couture experience across desktop, tablet, and mobile.",
+    url: "https://aura-atelier-ai.vercel.app/",
+    github: "https://github.com/Abhishekkuntare/aura-atelier-ai",
+    tags: [
+      "AI Fashion",
+      "Virtual Try-On",
+      "AI Styling",
+      "Outfit Discovery",
+      "Digital Wardrobe",
+      "AI Shopping",
+      "E-Commerce",
+      "Immersive UI",
+    ],
+    icon: Sparkles,
+  },
+  {
+    id: "homebuilders",
+    number: "08",
+    title: "Homebuilders",
+    subtitle: "Premium Real Estate Experience",
+    category: "Real Estate • Architecture • Web",
+    description:
+      "A modern real-estate and homebuilding experience designed to showcase premium residential properties, projects, and construction services through an immersive and responsive digital interface. Homebuilders combines elegant visual design, smooth interactions, property-focused content, and a premium architectural aesthetic to create a sophisticated experience across desktop, tablet, and mobile.",
+    url: "https://homebuilders-neon.vercel.app/",
+    github: "https://github.com/Abhishekkuntare/homebuilders",
+    tags: [
+      "Real Estate",
+      "Homebuilders",
+      "Property Showcase",
+      "Architecture",
+      "Residential Projects",
+      "Property Discovery",
+      "Responsive UI",
+      "Immersive UI",
+      "Modern Web",
+    ],
+    icon: Home,
+  },
+
+  {
+    id: "pulse-fitness-club",
+    number: "09",
+    title: "PULSE Fitness Club",
+    subtitle: "Premium Fitness & Training Experience",
+    category: "Fitness • Training • Web",
+    description:
+      "PULSE is a modern, premium fitness club web experience designed around high-performance training, personal coaching, fitness programs, community, and member engagement. The platform combines bold visual design, structured workout and class experiences, trainer-focused content, smooth interactions, and a responsive interface to create an energetic and sophisticated digital experience across desktop, tablet, and mobile.",
+    url: "https://pulse-fitness-club-three.vercel.app/",
+    github: "https://github.com/Abhishekkuntare/pulse-fitness-club",
+    tags: [
+      "Fitness",
+      "Fitness Club",
+      "Personal Training",
+      "Workout Programs",
+      "Group Classes",
+      "Coaching",
+      "Member Engagement",
+      "Responsive UI",
+      "Immersive UI",
+      "Modern Web",
+    ],
+    icon: Dumbbell,
+  },
+
+  {
+    id: "comfortpro",
+    number: "10",
+    title: "ComfortPro HVAC",
+    subtitle: "Premium HVAC Service Experience",
+    category: "Business • Service",
+    description:
+      "A modern conversion-focused HVAC platform built to turn local visitors into calls, quote requests and service bookings.",
+    url: "https://hvac-service-omega.vercel.app/",
+    github: "https://github.com/Abhishekkuntare/HVAC-Service",
+    tags: [
+      "Responsive UI",
+      "Local Business",
+      "Service Booking",
+      "Conversion UX",
+    ],
+    icon: Monitor,
+  },
+
+
 ];
 
 /* =========================================================
@@ -2070,17 +2126,17 @@ export default function OurWork() {
             SECTION HEADING
         ================================================= */}
 
-       <div className="mb-14 sm:mb-20">
+        <div className="mb-14 sm:mb-20">
 
-  {/* LABEL */}
-  <div className="our-work-label mb-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-400 sm:text-xs">
-    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,.9)] animate-pulse" />
-    Selected Work
-  </div>
+          {/* LABEL */}
+          <div className="our-work-label mb-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-400 sm:text-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,.9)] animate-pulse" />
+            Selected Work
+          </div>
 
-  {/* HERO-STYLE HEADING */}
-  <h2
-    className="
+          {/* HERO-STYLE HEADING */}
+          <h2
+            className="
       max-w-[1200px]
       font-black
       tracking-[-0.06em]
@@ -2088,10 +2144,10 @@ export default function OurWork() {
       text-white
       text-[clamp(3.2rem,7.5vw,7rem)]
     "
-  >
-    We don't just{" "}
-    <span
-      className="
+          >
+            We don't just{" "}
+            <span
+              className="
         bg-gradient-to-r
         from-cyan-300
         via-cyan-400
@@ -2099,13 +2155,13 @@ export default function OurWork() {
         bg-clip-text
         text-transparent
       "
-    >
-      build websites.
-    </span>
-  </h2>
+            >
+              build websites.
+            </span>
+          </h2>
 
-  <p
-    className="
+          <p
+            className="
       mt-7
       max-w-2xl
       text-sm
@@ -2114,12 +2170,12 @@ export default function OurWork() {
       leading-relaxed
       text-slate-400
     "
-  >
-    We build digital experiences designed to make
-    people stop, explore, interact and remember.
-  </p>
+          >
+            We build digital experiences designed to make
+            people stop, explore, interact and remember.
+          </p>
 
-</div>
+        </div>
 
         {/* =================================================
             PROJECT AREA
@@ -2163,10 +2219,9 @@ export default function OurWork() {
                     sm:py-3.5
                     lg:w-full
 
-                    ${
-                      isActive
-                        ? "border-cyan-400/20 bg-cyan-400/[0.09]"
-                        : "border-transparent hover:border-white/[0.07] hover:bg-white/[0.035]"
+                    ${isActive
+                      ? "border-cyan-400/20 bg-cyan-400/[0.09]"
+                      : "border-transparent hover:border-white/[0.07] hover:bg-white/[0.035]"
                     }
                   `}
                 >
@@ -2175,10 +2230,9 @@ export default function OurWork() {
                       w-6
                       font-mono
                       text-[9px]
-                      ${
-                        isActive
-                          ? "text-cyan-300"
-                          : "text-slate-600"
+                      ${isActive
+                        ? "text-cyan-300"
+                        : "text-slate-600"
                       }
                     `}
                   >
@@ -2197,10 +2251,9 @@ export default function OurWork() {
                       transition-all
                       duration-500
 
-                      ${
-                        isActive
-                          ? "bg-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,.2)]"
-                          : "bg-white/[0.05] text-slate-500"
+                      ${isActive
+                        ? "bg-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,.2)]"
+                        : "bg-white/[0.05] text-slate-500"
                       }
                     `}
                   >
@@ -2214,10 +2267,9 @@ export default function OurWork() {
                         text-xs
                         font-bold
 
-                        ${
-                          isActive
-                            ? "text-white"
-                            : "text-slate-400"
+                        ${isActive
+                          ? "text-white"
+                          : "text-slate-400"
                         }
                       `}
                     >
@@ -2313,15 +2365,14 @@ export default function OurWork() {
                           transition-all
                           duration-300
 
-                          ${
-                            isActive
-                              ? "bg-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,.18)]"
-                              : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-200"
+                          ${isActive
+                            ? "bg-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,.18)]"
+                            : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-200"
                           }
                         `}
                       >
                         {device.id ===
-                        "desktop" ? (
+                          "desktop" ? (
                           <Monitor className="h-3.5 w-3.5" />
                         ) : device.id ===
                           "ipad" ? (
@@ -2413,16 +2464,14 @@ export default function OurWork() {
                   device-frame
                   relative
 
-                  ${
-                    isDesktop
-                      ? "device-desktop"
-                      : "device-mobile"
+                  ${isDesktop
+                    ? "device-desktop"
+                    : "device-mobile"
                   }
 
-                  ${
-                    deviceChanging
-                      ? "device-changing"
-                      : ""
+                  ${deviceChanging
+                    ? "device-changing"
+                    : ""
                   }
                 `}
                 style={{
@@ -2450,10 +2499,9 @@ export default function OurWork() {
                     bg-[#05080d]
                     shadow-[0_30px_100px_rgba(0,0,0,.7)]
 
-                    ${
-                      isDesktop
-                        ? "rounded-2xl"
-                        : "rounded-[34px]"
+                    ${isDesktop
+                      ? "rounded-2xl"
+                      : "rounded-[34px]"
                     }
                   `}
                 >
@@ -2665,11 +2713,10 @@ export default function OurWork() {
                         transition-all
                         duration-500
 
-                        ${
-                          index ===
+                        ${index ===
                           activeIndex
-                            ? "w-10 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,.5)]"
-                            : "w-4 bg-white/10 hover:bg-white/20"
+                          ? "w-10 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,.5)]"
+                          : "w-4 bg-white/10 hover:bg-white/20"
                         }
                       `}
                     />
@@ -2677,7 +2724,7 @@ export default function OurWork() {
                 )}
 
                 <span className="ml-2 font-mono text-[9px] text-slate-600">
-                  {activeProject.number} / 05
+                  {activeProject.number} / 09
                 </span>
               </div>
 
